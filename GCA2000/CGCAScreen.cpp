@@ -64,7 +64,8 @@ void CGCAScreen::OnRefresh(HDC hDC, int Phase)
 	dc.Attach(hDC);
 
 	//pens
-	CPen redPen(0, 1, RGB(213, 17, 27));
+	CPen redNPen(0, 1, RGB(213, 17, 27));
+	CPen redWPen(0, 5, RGB(213, 17, 27));
 	CPen bluPen(0, 1, RGB(89, 99, 210));
 	CPen yelPen(0, 1, RGB(244, 233, 0));
 	CPen whtPen(0, 1, RGB(255, 255, 255));
