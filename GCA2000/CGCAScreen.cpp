@@ -2,6 +2,7 @@
 #include "CGCAScreen.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <string>
 
 CGCAScreen::CGCAScreen(void)
 {
@@ -33,6 +34,10 @@ void CGCAScreen::OnAsrContentLoaded(bool Loaded)
 		m_Heading = atoi(p_value);
 	if ((p_value = GetDataFromAsr("Slope")) != NULL)
 		m_Slope = atof(p_value);
+	if (m_Slope > 8.0)
+		m_Slope = 8.0;
+	if (m_Slope <= 0.0)
+		m_Slope = 1.0;
 	if ((p_value = GetDataFromAsr("OCH")) != NULL)
 		m_OCH = atoi(p_value);
 
@@ -58,40 +63,101 @@ void CGCAScreen::OnAsrContentToBeSaved(void)
 
 void CGCAScreen::OnRefresh(HDC hDC, int Phase)
 {
-	if (Phase != EuroScopePlugIn::REFRESH_PHASE_BEFORE_TAGS)
-		return;
-	CDC dc;
-	dc.Attach(hDC);
+    // only in first phase
+    if (Phase != EuroScopePlugIn::REFRESH_PHASE_BEFORE_TAGS)
+        return;
 
-	//pens
-	CPen redNPen(0, 1, RGB(213, 17, 27));
-	CPen redWPen(0, 5, RGB(213, 17, 27));
-	CPen bluPen(0, 1, RGB(89, 99, 210));
-	CPen yelPen(0, 1, RGB(244, 233, 0));
-	CPen whtPen(0, 1, RGB(255, 255, 255));
-	CPen prpPen(0, 1, RGB(177, 99, 175));
-	CPen grnPen(0, 1, RGB(69, 220, 115));
+    // I am using MFC, so load the DC in to MFC structure
+    CDC     dc;
+    dc.Attach(hDC);
+	// Creating pens
+	CPen redPen(0, 2, RGB(172, 36, 51));
+	CPen bluPen(0, 2, RGB(19, 97, 232));
+	CPen yelPen(0, 2, RGB(223, 212, 36));
+	CPen grePen(0, 2, RGB(34, 85, 48));
 	CPen* p_old_pen;
-
-	CRect   rect1 = GetRadarArea();
-	CRect   rect2 = GetChatArea();
-	rect1.bottom = rect2.top;
-	delete rect2;
-	int middleY = rect1.CenterPoint().y;
-	int lowerMiddleY = (middleY + rect1.bottom) / 2;
-	int width = rect1.Width() - 10;
-	int height = middleY - 20 - (rect1.top - 5);
-
 	p_old_pen = dc.SelectObject(&redPen);
-	// Draw track axis
-	dc.MoveTo(rect1.left + 5, middleY);
-	dc.LineTo(rect1.left + 5, rect1.top - 20);
+	// Get drawing area
+	CRect radarArea = GetRadarArea();
+	CRect chatArea = GetChatArea();
+	radarArea.bottom = chatArea.top;
+	// Add margins
+	radarArea.DeflateRect(50, 50);
+	CPoint midPoint = radarArea.CenterPoint();
+	// Get Glideslope, track and cross areas
+	CRect gsArea = CRect(radarArea.left, radarArea.top, radarArea.right, midPoint.y);
+	CRect tkArea = CRect(radarArea.left, midPoint.y, radarArea.right, radarArea.bottom);
+	gsArea.DeflateRect(0, 20);
+	tkArea.DeflateRect(0, 20);
+	CRect xsArea = CRect(gsArea.left, gsArea.top, gsArea.left + 250, gsArea.top + 250);
+	xsArea.DeflateRect(20, 20);
+	// Show radar area
+	dc.SelectObject(&grePen);
+	dc.MoveTo(radarArea.left, radarArea.top);
+	dc.LineTo(radarArea.right, radarArea.top);
+	dc.LineTo(radarArea.right, radarArea.bottom);
+	dc.LineTo(radarArea.left, radarArea.bottom);
+	dc.LineTo(radarArea.left, radarArea.top);
+	// Draw cross
+	dc.SelectObject(&redPen);
+	CPoint crossMiddle = xsArea.CenterPoint();
+	dc.MoveTo(xsArea.left, crossMiddle.y);
+	dc.LineTo(xsArea.right, crossMiddle.y);
+	dc.MoveTo(crossMiddle.x, xsArea.top);
+	dc.LineTo(crossMiddle.x, xsArea.bottom);
+	// Draw altitude axis
+	dc.MoveTo(gsArea.left, gsArea.bottom);
+	dc.LineTo(gsArea.left, gsArea.top);
+	const unsigned int maxAlt = 16000;
+	float scaleFactor = 0.75; // TODO: scale change with range (0.5 - 10 NM, 0.75 - 15 NM, 1 - 20 NM);
+	const int altTick = gsArea.Height() / (maxAlt / 4000)*scaleFactor;
+	dc.SetTextColor(RGB(172, 36, 51));
+	dc.SetTextAlign(TA_RIGHT);
+	for (int i = 0; i <= 4; i++)
+	{
+		dc.MoveTo(gsArea.left - 10, gsArea.bottom - i * altTick);
+		dc.LineTo(gsArea.left + 10, gsArea.bottom - i * altTick);
+		if (i == 0)
+			continue;
+		std::string label = std::to_string(i * 4000);
+		dc.TextOutA(gsArea.left - 15, gsArea.bottom - i * altTick, label.c_str());
+	}
+	// Show Glideslope area
+	dc.SelectObject(&bluPen);
+	dc.MoveTo(gsArea.right, gsArea.top);
+	dc.LineTo(gsArea.left, gsArea.bottom);
+	dc.LineTo(gsArea.right, gsArea.bottom);
+	// Show Track area
+	dc.SelectObject(&yelPen);
+	dc.MoveTo(tkArea.right, tkArea.top);
+	dc.LineTo(tkArea.left, tkArea.top);
+	dc.LineTo(tkArea.right, tkArea.bottom);
+	// Draw info text in the middle
+	dc.SetTextColor(RGB(170, 29, 93));
+	dc.SetTextAlign(TA_LEFT);
+	std::string topLabel = "  GS: ";
+	topLabel.append(std::to_string(m_Slope).substr(0,3));
+	topLabel.append("°        RWY: ");
+	topLabel.append(std::to_string(m_Heading));
+	std::string windDir = "270"; // TODO: Add wind from METAR
+	std::string windSpd = "15";  // TODO: Add wind from METAR
+	std::string QNH = "1013";    // TODO: Add QNH from METAR
+	std::string botLabel = "WIND: ";
+	botLabel.append(windDir);
+	botLabel.append("° / ");
+	botLabel.append(windSpd);
+	botLabel.append("KT ALT: ");
+	botLabel.append(QNH);
+	dc.TextOutA(radarArea.left + 20, midPoint.y - 10, topLabel.c_str());
+	dc.TextOutA(radarArea.left + 20, midPoint.y     , botLabel.c_str());
+    // detach
+    dc.Detach();
 }
 
-bool OnCompileCommand(const char* sCommandLine)
-{
-	if (strncmp(sCommandLine, ".gca", 4))
-		return false;
-	AFX_MANAGE_STATE(AfxGetStaticModuleState());
-	return true;
-}
+//bool OnCompileCommand(const char* sCommandLine)
+//{
+//	if (strncmp(sCommandLine, ".gca", 4))
+//		return false;
+//	AFX_MANAGE_STATE(AfxGetStaticModuleState());
+//	return true;
+//}

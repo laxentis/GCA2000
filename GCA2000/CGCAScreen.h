@@ -19,7 +19,7 @@ public:
 	virtual void OnAsrContentLoaded(bool Loaded);
 	virtual void OnAsrContentToBeSaved(void);
 	virtual void OnRefresh(HDC hDC, int Phase);
-	virtual bool OnCompileCommand(const char* sCommandLine);
+	//virtual bool OnCompileCommand(const char* sCommandLine);
 	inline virtual void OnAsrContentToBeClosed(void)
 	{
 		delete this;
