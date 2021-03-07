@@ -91,13 +91,7 @@ void CGCAScreen::OnRefresh(HDC hDC, int Phase)
 	tkArea.DeflateRect(0, 20);
 	CRect xsArea = CRect(gsArea.left, gsArea.top, gsArea.left + 250, gsArea.top + 250);
 	xsArea.DeflateRect(20, 20);
-	// Show radar area
-	dc.SelectObject(&grePen);
-	dc.MoveTo(radarArea.left, radarArea.top);
-	dc.LineTo(radarArea.right, radarArea.top);
-	dc.LineTo(radarArea.right, radarArea.bottom);
-	dc.LineTo(radarArea.left, radarArea.bottom);
-	dc.LineTo(radarArea.left, radarArea.top);
+	// ### GLIDESLOPE PORTION ###
 	// Draw cross
 	dc.SelectObject(&redPen);
 	CPoint crossMiddle = xsArea.CenterPoint();
@@ -109,11 +103,11 @@ void CGCAScreen::OnRefresh(HDC hDC, int Phase)
 	dc.MoveTo(gsArea.left, gsArea.bottom);
 	dc.LineTo(gsArea.left, gsArea.top);
 	const unsigned int maxAlt = 16000;
-	float scaleFactor = 0.75; // TODO: scale change with range (0.5 - 10 NM, 0.75 - 15 NM, 1 - 20 NM);
-	const int altTick = gsArea.Height() / (maxAlt / 4000)*scaleFactor;
+	int numVTicks = int(maxAlt / 4000);
+	int altTick = gsArea.Height() / numVTicks;
 	dc.SetTextColor(RGB(172, 36, 51));
 	dc.SetTextAlign(TA_RIGHT);
-	for (int i = 0; i <= 4; i++)
+	for (int i = 0; i <= numVTicks; i++)
 	{
 		dc.MoveTo(gsArea.left - 10, gsArea.bottom - i * altTick);
 		dc.LineTo(gsArea.left + 10, gsArea.bottom - i * altTick);
@@ -122,16 +116,34 @@ void CGCAScreen::OnRefresh(HDC hDC, int Phase)
 		std::string label = std::to_string(i * 4000);
 		dc.TextOutA(gsArea.left - 15, gsArea.bottom - i * altTick, label.c_str());
 	}
-	// Show Glideslope area
-	dc.SelectObject(&bluPen);
-	dc.MoveTo(gsArea.right, gsArea.top);
-	dc.LineTo(gsArea.left, gsArea.bottom);
+	// Draw track distance axis
+	dc.MoveTo(gsArea.left, gsArea.bottom);
 	dc.LineTo(gsArea.right, gsArea.bottom);
-	// Show Track area
-	dc.SelectObject(&yelPen);
-	dc.MoveTo(tkArea.right, tkArea.top);
-	dc.LineTo(tkArea.left, tkArea.top);
-	dc.LineTo(tkArea.right, tkArea.bottom);
+	const unsigned int maxRange = 20;
+	int numTicks = int(maxRange / 2.5);
+	int rangeTick = gsArea.Width() / numTicks;
+	for (int i = 0; i <= numTicks; i++)
+	{
+		dc.MoveTo(gsArea.left + i * rangeTick, gsArea.bottom - 10);
+		dc.LineTo(gsArea.left + i * rangeTick, gsArea.bottom + 10);
+		if (i == 0)
+			continue;
+		if (i % 2 != 0)
+			continue;
+		std::string label = std::to_string(int(i * 2.5));
+		dc.SetTextAlign(TA_TOP);
+		dc.TextOutA(gsArea.left + i * rangeTick, gsArea.bottom + 15, label.c_str());
+	}
+	// Show Glideslope
+	float slopeMaxAlt = sin(m_Slope) * maxRange * 6076;
+	dc.SelectObject(&grePen);
+	dc.MoveTo(gsArea.left, gsArea.bottom);
+	dc.LineTo(gsArea.right, gsArea.bottom - slopeMaxAlt/maxAlt * gsArea.Height());
+	// Draw runway
+	dc.SelectObject(&bluPen);
+	dc.MoveTo(0, gsArea.bottom);
+	dc.LineTo(gsArea.left + 50, gsArea.bottom);
+	// ### MIDDLE TEXT ###
 	// Draw info text in the middle
 	dc.SetTextColor(RGB(170, 29, 93));
 	dc.SetTextAlign(TA_LEFT);
@@ -150,6 +162,12 @@ void CGCAScreen::OnRefresh(HDC hDC, int Phase)
 	botLabel.append(QNH);
 	dc.TextOutA(radarArea.left + 20, midPoint.y - 10, topLabel.c_str());
 	dc.TextOutA(radarArea.left + 20, midPoint.y     , botLabel.c_str());
+	// ### TRACK PORTION ###
+    // Show Track area
+	dc.SelectObject(&yelPen);
+	dc.MoveTo(tkArea.right, tkArea.top);
+	dc.LineTo(tkArea.left, tkArea.top);
+	dc.LineTo(tkArea.right, tkArea.bottom);
     // detach
     dc.Detach();
 }
