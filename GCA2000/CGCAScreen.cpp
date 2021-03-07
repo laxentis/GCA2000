@@ -135,10 +135,10 @@ void CGCAScreen::OnRefresh(HDC hDC, int Phase)
 		dc.TextOutA(gsArea.left + i * rangeTick, gsArea.bottom + 15, label.c_str());
 	}
 	// Show Glideslope
-	float slopeMaxAlt = sin(m_Slope) * maxRange * 6076;
+	float slopeMaxAlt = tan(m_Slope) * maxRange * 6076;
 	dc.SelectObject(&grePen);
 	dc.MoveTo(gsArea.left, gsArea.bottom);
-	dc.LineTo(gsArea.right, gsArea.bottom - slopeMaxAlt/maxAlt * gsArea.Height());
+	dc.LineTo(gsArea.right, gsArea.bottom - (slopeMaxAlt/maxAlt * gsArea.Height()));
 	// Draw runway
 	dc.SelectObject(&bluPen);
 	dc.MoveTo(0, gsArea.bottom);
