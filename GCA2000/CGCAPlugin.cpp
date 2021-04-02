@@ -8,9 +8,7 @@ CGCAPlugin::CGCAPlugin(void) : CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, MY_P
 }
 
 CGCAPlugin::~CGCAPlugin(void)
-{
-
-}
+= default;
 
 EuroScopePlugIn::CRadarScreen* CGCAPlugin::OnRadarScreenCreated(const char* sDisplayName, bool NeedRadarContent, bool GeoReferenced, bool CanBeSaved, bool CanBeCreated)
 {

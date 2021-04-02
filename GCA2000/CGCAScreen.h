@@ -12,7 +12,8 @@ private:
 	void DrawObstacleClearanceHeight(CDC* dc, CRect area, CPen* pen, unsigned maxRange, unsigned maxAlt) const;
 	static void DrawGlideslopeRunway(CDC* dc, CRect area, CPen* pen);
 	void DrawMiddleText(CDC* dc, CRect area) const;
-	void DrawTrackAxes(CDC* dc, CRect area, CPen* pen, unsigned maxRange) const;
+	void DrawTrackAxes(CDC* dc, CRect area, CPen* pen, unsigned maxRange, int maxTrackError) const;
+	static void DrawTrackRunway(CDC* dc, CRect area, CPen* pen);
 protected:
 	CString Description; // Radar description
 	CString Lat, Lon; // Threshold coordinates

@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "CGCAScreen.h"
 // ReSharper disable once CppInconsistentNaming
-#define _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES  // NOLINT(clang-diagnostic-reserved-id-macro)
 #include <math.h>  // NOLINT(modernize-deprecated-headers) because VS fails to include MATH DEFINES from cmath
 #include <string>
 
@@ -138,7 +138,7 @@ void CGCAScreen::DrawObstacleClearanceHeight(CDC* dc, const CRect area, CPen* pe
 	// Show Obstacle Clearance Height
 	const auto obstacleClearanceHeightDistance = (1 / tan(slopeRadians)) * (ObstacleClearanceHeight / 6076.0);
 	const auto obstacleClearanceHeightCenterX = area.left + obstacleClearanceHeightDistance / maxRange * area.Width();
-	const auto obstacleClearanceHeightCenterY = area.bottom - static_cast<float>(ObstacleClearanceHeight) / maxAlt * area.Height();
+	const auto obstacleClearanceHeightCenterY = area.bottom - static_cast<double>(ObstacleClearanceHeight) / maxAlt * area.Height();
 	dc->MoveTo(obstacleClearanceHeightCenterX - 100, obstacleClearanceHeightCenterY);
 	dc->LineTo(obstacleClearanceHeightCenterX + 100, obstacleClearanceHeightCenterY);
 	// Restore previous dc
@@ -183,19 +183,40 @@ void CGCAScreen::DrawMiddleText(CDC* dc, CRect area) const
 }
 
 
-void CGCAScreen::DrawTrackAxes(CDC* dc, const CRect area, CPen* pen, const unsigned maxRange) const
+void CGCAScreen::DrawTrackAxes(CDC* dc, const CRect area, CPen* pen, const unsigned maxRange, const int maxTrackError) const
 {
 	// ReSharper disable once CppInconsistentNaming
 	const auto sDC = dc->SaveDC();
 	dc->SelectObject(pen);
+	dc->SetTextColor(RGB(172, 36, 51));
 	const auto midPoint = area.CenterPoint();
+	// Draw vertical axis
+	dc->MoveTo(area.left, area.bottom);
+	dc->LineTo(area.left, area.top);
+	// Draw ticks
+	const auto numVTicks = static_cast<int>(maxTrackError / 8000);
+	const auto tickHeight = area.Height() / (2*numVTicks);
+	for (auto i = 0; i <= numVTicks; i++)
+	{
+		dc->MoveTo(area.left - 10, area.top + i * tickHeight);
+		dc->LineTo(area.left + 10, area.top + i * tickHeight);
+		dc->MoveTo(area.left - 10, area.bottom - i * tickHeight);
+		dc->LineTo(area.left + 10, area.bottom - i * tickHeight);
+		if(i==0)
+			continue;
+		const auto tickValue = i * maxTrackError / numVTicks;
+		auto topLabel = std::to_string(tickValue);
+		auto bottomLabel = std::to_string(-tickValue);
+		dc->SetTextAlign(TA_RIGHT);
+		dc->TextOutA(area.left - 15, midPoint.y - i * tickHeight, topLabel.c_str());
+		dc->TextOutA(area.left - 15, midPoint.y + i * tickHeight, bottomLabel.c_str());
+	}
 	// Draw middle axis
 	dc->MoveTo(area.left, midPoint.y);
 	dc->LineTo(area.right, midPoint.y);
 	// Draw ticks
 	const auto numTicks = static_cast<int>(maxRange / 2.5);
 	const auto tickWidth = area.Width() / numTicks;
-	dc->SetTextColor(RGB(172, 36, 51));
 	for (auto i = 0; i <= numTicks; i++)
 	{
 		dc->MoveTo(area.left + i * tickWidth, midPoint.y - 10);
@@ -208,6 +229,18 @@ void CGCAScreen::DrawTrackAxes(CDC* dc, const CRect area, CPen* pen, const unsig
 		dc->SetTextAlign(TA_TOP);
 		dc->TextOutA(area.left + i * tickWidth, midPoint.y + 15, label.c_str());
 	}
+	dc->RestoreDC(sDC);
+}
+
+
+void CGCAScreen::DrawTrackRunway(CDC* dc, CRect area, CPen* pen)
+{
+	// ReSharper disable once CppInconsistentNaming
+	const auto sDC = dc->SaveDC();
+	const auto midPoint = area.CenterPoint();
+	dc->SelectObject(pen);
+	dc->MoveTo(0, midPoint.y);
+	dc->LineTo(area.left + 50, midPoint.y);
 	dc->RestoreDC(sDC);
 }
 
@@ -228,7 +261,7 @@ void CGCAScreen::OnAsrContentToBeSaved(void)
 }
 
 // ReSharper disable once CppInconsistentNaming
-void CGCAScreen::OnRefresh(const HDC hDC, const int phase)
+void CGCAScreen::OnRefresh(HDC hDC, const int phase)
 {
     // only in first phase
     if (phase != EuroScopePlugIn::REFRESH_PHASE_BEFORE_TAGS)
@@ -248,7 +281,7 @@ void CGCAScreen::OnRefresh(const HDC hDC, const int phase)
     const CRect chatArea = GetChatArea();
 	radarArea.bottom = chatArea.top;
 	// Add margins
-	radarArea.DeflateRect(50, 50);
+	radarArea.DeflateRect(75, 50);
     const auto midPoint = radarArea.CenterPoint();
 	// Get Glideslope, track and cross areas
     auto gsArea = CRect(radarArea.left, radarArea.top, radarArea.right, midPoint.y);
@@ -259,8 +292,9 @@ void CGCAScreen::OnRefresh(const HDC hDC, const int phase)
 	xsArea.DeflateRect(20, 20);
 
 	// Set maximum values
-	const unsigned int maxRange = 20;
-	const unsigned int maxAlt = 16000;
+	const unsigned maxRange = 20;
+	const unsigned maxAlt = 16000;
+	const unsigned maxTrackError = maxAlt * 2;
 	// ### GLIDESLOPE PORTION ###
 	DrawGlideslopeAxes(&dc, gsArea, &redPen , maxRange, maxAlt);
 	// Draw cross
@@ -274,7 +308,8 @@ void CGCAScreen::OnRefresh(const HDC hDC, const int phase)
 	// Draw info text in the middle
 	DrawMiddleText(&dc, radarArea);
 	// ### TRACK PORTION ###
-	DrawTrackAxes(&dc, tkArea, &redPen, maxRange);
+	DrawTrackAxes(&dc, tkArea, &redPen, maxRange, maxTrackError);
+	DrawTrackRunway(&dc, tkArea, &bluPen);
     // detach
     dc.Detach();
 }
