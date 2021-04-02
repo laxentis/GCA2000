@@ -17,6 +17,6 @@ public:
 		bool geoReferenced,
 		bool canBeSaved,
 		bool canBeCreated);
-	inline void OnNewMetarReceived(const char* sStation, const char* sFullMetar) override;
+	void OnNewMetarReceived(const char* sStation, const char* sFullMetar) override;
 };
 
