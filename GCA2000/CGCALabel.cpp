@@ -1,8 +1,9 @@
 #include "pch.h"
 #include "CGCALabel.h"
+// ReSharper disable once CppInconsistentNaming
 #define _USE_MATH_DEFINES
 #include <functional>
-#include <math.h>
+#include <math.h>  // NOLINT(modernize-deprecated-headers)
 
 CGCALabel::CGCALabel(const EuroScopePlugIn::CRadarTarget track, char wakeTurbulenceCategory, const EuroScopePlugIn::CPosition threshold, const int thresholdAltitude,
                      const int heading,
