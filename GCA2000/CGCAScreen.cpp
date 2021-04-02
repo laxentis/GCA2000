@@ -157,14 +157,17 @@ void CGCAScreen::DrawGlideslopeRunway(CDC* dc, const CRect area, CPen* pen)
 }
 
 
-void CGCAScreen::DrawMiddleText(CDC* dc, CRect area) const
+void CGCAScreen::DrawMiddleText(CDC* dc, const CRect area) const
 {
 	// ReSharper disable once CppInconsistentNaming
 	const auto sDC = dc->SaveDC();
 	const auto midPoint = area.CenterPoint();
+	CFont arial;
+	arial.CreatePointFont(100, _T("Arial"), dc);
 	dc->SetTextColor(RGB(170, 29, 93));
 	dc->SetTextAlign(TA_LEFT);
-	std::string topLabel = "  GS: ";
+	auto* defFont = dc->SelectObject(&arial);
+	std::string topLabel = "GS: ";
 	topLabel.append(std::to_string(GlideSlope).substr(0, 3));
 	topLabel.append("°        RWY: ");
 	topLabel.append(std::to_string(Heading));
@@ -177,8 +180,10 @@ void CGCAScreen::DrawMiddleText(CDC* dc, CRect area) const
 	botLabel.append(windSpd);
 	botLabel.append("KT ALT: ");
 	botLabel.append(QNH);
-	dc->TextOutA(area.left + 20, midPoint.y - 10, topLabel.c_str());
+	dc->TextOutA(area.left + 20, midPoint.y - 15, topLabel.c_str());
 	dc->TextOutA(area.left + 20, midPoint.y, botLabel.c_str());
+	dc->SelectObject(defFont);
+	arial.DeleteObject();
 	dc->RestoreDC(sDC);
 }
 
