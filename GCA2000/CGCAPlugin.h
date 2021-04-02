@@ -13,9 +13,10 @@ public:
 	virtual ~CGCAPlugin(void);
 	virtual EuroScopePlugIn::CRadarScreen* OnRadarScreenCreated(
 		const char* sDisplayName,
-		bool NeedRadarContent,
-		bool GeoReferenced,
-		bool CanBeSaved,
-		bool CanBeCreated);
+		bool needRadarContent,
+		bool geoReferenced,
+		bool canBeSaved,
+		bool canBeCreated);
+	inline void OnNewMetarReceived(const char* sStation, const char* sFullMetar) override;
 };
 
