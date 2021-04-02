@@ -7,7 +7,7 @@ public:
 	CGCALabel(EuroScopePlugIn::CRadarTarget track, char wakeTurbulenceCategory, EuroScopePlugIn::CPosition threshold, int thresholdAltitude, int heading, double glideSlope);
 	double GetTrackDistance() const;
 	double GetTrackDeviation() const;
-	auto GetGlidepathDeviation() const -> double;
+	double GetGlidepathDeviation() const;
 
 private:
 	// Calculated or retrieved parameters

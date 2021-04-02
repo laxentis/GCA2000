@@ -1,9 +1,12 @@
 #pragma once
 #include "EuroScopePlugIn.h"
 
-class CGCAScreen :
+// ReSharper disable once CppInconsistentNaming
+class CGCAScreen final :
 	public EuroScopePlugIn::CRadarScreen
 {
+private:
+	void DrawGlideslopeAxes(CDC *dc, CRect area, const unsigned maxRange, const unsigned maxAlt) const;
 protected:
 	CString Description; // Radar description
 	CString Lat, Lon; // Threshold coordinates
@@ -23,6 +26,6 @@ public:
 	inline void OnAsrContentToBeClosed(void) override
 	{
 		delete this;
-	};
+	}
 };
 

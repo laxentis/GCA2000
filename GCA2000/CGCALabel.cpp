@@ -4,9 +4,9 @@
 #include <functional>
 #include <math.h>
 
-CGCALabel::CGCALabel(EuroScopePlugIn::CRadarTarget track, char wakeTurbulenceCategory, EuroScopePlugIn::CPosition threshold, int thresholdAltitude,
-                     int heading,
-                     double glideSlope)
+CGCALabel::CGCALabel(const EuroScopePlugIn::CRadarTarget track, char wakeTurbulenceCategory, const EuroScopePlugIn::CPosition threshold, const int thresholdAltitude,
+                     const int heading,
+                     const double glideSlope)
 {
 	this->RadarTrackPosition = track.GetPosition().GetPosition();
 	this->WakeTurbulenceCategory = track.GetCorrelatedFlightPlan().GetFlightPlanData().GetAircraftWtc();

@@ -47,6 +47,56 @@ void CGCAScreen::OnAsrContentLoaded(bool loaded)
 	ScopeMaxHeight = Altitude + static_cast<int>(20.0 * 6076.0 * sin(GlideSlope / 180.0 * M_PI));
 }
 
+
+void CGCAScreen::DrawGlideslopeAxes(CDC* dc, const CRect area, const unsigned maxRange = 20, const unsigned maxAlt = 16000) const
+{
+	// Store current dc
+	// ReSharper disable once CppInconsistentNaming
+	const auto sDC = dc->SaveDC();
+
+	// Create red pen for axis
+	CPen redPen(0, 2, RGB(172, 36, 51));
+	dc->SelectObject(&redPen);
+
+	// Draw altitude axis
+	dc->MoveTo(area.left, area.bottom);
+	dc->LineTo(area.left, area.top);
+
+	const auto numVTicks = static_cast<int>(maxAlt / 4000);
+	const auto altTick = area.Height() / numVTicks;
+	dc->SetTextColor(RGB(172, 36, 51));
+	dc->SetTextAlign(TA_RIGHT);
+	for (auto i = 0; i <= numVTicks; i++)
+	{
+		dc->MoveTo(area.left - 10, area.bottom - i * altTick);
+		dc->LineTo(area.left + 10, area.bottom - i * altTick);
+		if (i == 0)
+			continue;
+		auto label = std::to_string(i * 4000);
+		dc->TextOutA(area.left - 15, area.bottom - i * altTick, label.c_str());
+	}
+	// Draw track distance axis
+	dc->MoveTo(area.left, area.bottom);
+	dc->LineTo(area.right, area.bottom);
+	const auto numTicks = static_cast<int>(maxRange / 2.5);
+	const auto rangeTick = area.Width() / numTicks;
+	for (auto i = 0; i <= numTicks; i++)
+	{
+		dc->MoveTo(area.left + i * rangeTick, area.bottom - 10);
+		dc->LineTo(area.left + i * rangeTick, area.bottom + 10);
+		if (i == 0)
+			continue;
+		if (i % 2 != 0)
+			continue;
+		auto label = std::to_string(static_cast<int>(i * 2.5));
+		dc->SetTextAlign(TA_TOP);
+		dc->TextOutA(area.left + i * rangeTick, area.bottom + 15, label.c_str());
+	}
+	
+	// Restore previous dc
+	dc->RestoreDC(sDC);
+}
+
 void CGCAScreen::OnAsrContentToBeSaved(void)
 {
 	CString str;
@@ -94,6 +144,7 @@ void CGCAScreen::OnRefresh(HDC hDC, int Phase)
     auto xsArea = CRect(gsArea.left, gsArea.top, gsArea.left + 250, gsArea.top + 250);
 	xsArea.DeflateRect(20, 20);
 	// ### GLIDESLOPE PORTION ###
+	DrawGlideslopeAxes(&dc, gsArea, 20, 16000);
 	// Draw cross
 	dc.SelectObject(&redPen);
     auto crossMiddle = xsArea.CenterPoint();
@@ -101,41 +152,9 @@ void CGCAScreen::OnRefresh(HDC hDC, int Phase)
 	dc.LineTo(xsArea.right, crossMiddle.y);
 	dc.MoveTo(crossMiddle.x, xsArea.top);
 	dc.LineTo(crossMiddle.x, xsArea.bottom);
-	// Draw altitude axis
-	dc.MoveTo(gsArea.left, gsArea.bottom);
-	dc.LineTo(gsArea.left, gsArea.top);
-	const unsigned int maxAlt = 16000;
-    auto numVTicks = static_cast<int>(maxAlt / 4000);
-    auto altTick = gsArea.Height() / numVTicks;
-	dc.SetTextColor(RGB(172, 36, 51));
-	dc.SetTextAlign(TA_RIGHT);
-	for (auto i = 0; i <= numVTicks; i++)
-	{
-		dc.MoveTo(gsArea.left - 10, gsArea.bottom - i * altTick);
-		dc.LineTo(gsArea.left + 10, gsArea.bottom - i * altTick);
-		if (i == 0)
-			continue;
-		auto label = std::to_string(i * 4000);
-		dc.TextOutA(gsArea.left - 15, gsArea.bottom - i * altTick, label.c_str());
-	}
-	// Draw track distance axis
-	dc.MoveTo(gsArea.left, gsArea.bottom);
-	dc.LineTo(gsArea.right, gsArea.bottom);
+	
 	const unsigned int maxRange = 20;
-    auto numTicks = static_cast<int>(maxRange / 2.5);
-    auto rangeTick = gsArea.Width() / numTicks;
-	for (auto i = 0; i <= numTicks; i++)
-	{
-		dc.MoveTo(gsArea.left + i * rangeTick, gsArea.bottom - 10);
-		dc.LineTo(gsArea.left + i * rangeTick, gsArea.bottom + 10);
-		if (i == 0)
-			continue;
-		if (i % 2 != 0)
-			continue;
-		auto label = std::to_string(int(i * 2.5));
-		dc.SetTextAlign(TA_TOP);
-		dc.TextOutA(gsArea.left + i * rangeTick, gsArea.bottom + 15, label.c_str());
-	}
+	const unsigned int maxAlt = 16000;
 	// Show Glideslope
     auto slopeRadians = GlideSlope * M_PI / 180;
     auto slopeMaxAlt = tan(slopeRadians) * maxRange * 6076;
