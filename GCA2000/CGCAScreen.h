@@ -6,7 +6,10 @@ class CGCAScreen final :
 	public EuroScopePlugIn::CRadarScreen
 {
 private:
-	void DrawGlideslopeAxes(CDC *dc, CRect area, const unsigned maxRange, const unsigned maxAlt) const;
+	void DrawGlideslopeAxes(CDC *dc, CRect area, CPen* pen, unsigned maxRange, unsigned maxAlt) const;
+	void DrawDeviationCross(CDC* dc, CRect area, CPen* pen) const;
+	void DrawGlideslope(CDC* dc, CRect area, CPen* pen, unsigned maxRange, unsigned maxAlt) const;
+	void DrawObstacleClearanceHeight(CDC* dc, CRect area, CPen* pen, unsigned maxRange, unsigned maxAlt) const;
 protected:
 	CString Description; // Radar description
 	CString Lat, Lon; // Threshold coordinates
@@ -21,7 +24,8 @@ public:
 	virtual ~CGCAScreen(void);
 	void OnAsrContentLoaded(bool loaded) override;
 	void OnAsrContentToBeSaved(void) override;
-	void OnRefresh(HDC hDC, int Phase) override;
+	// ReSharper disable once CppInconsistentNaming
+	void OnRefresh(HDC hDC, int phase) override;
 	//virtual bool OnCompileCommand(const char* sCommandLine);
 	inline void OnAsrContentToBeClosed(void) override
 	{

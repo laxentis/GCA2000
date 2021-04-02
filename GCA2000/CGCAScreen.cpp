@@ -48,15 +48,14 @@ void CGCAScreen::OnAsrContentLoaded(bool loaded)
 }
 
 
-void CGCAScreen::DrawGlideslopeAxes(CDC* dc, const CRect area, const unsigned maxRange = 20, const unsigned maxAlt = 16000) const
+void CGCAScreen::DrawGlideslopeAxes(CDC* dc, const CRect area, CPen* pen, const unsigned maxRange = 20, const unsigned maxAlt = 16000) const
 {
 	// Store current dc
 	// ReSharper disable once CppInconsistentNaming
 	const auto sDC = dc->SaveDC();
 
-	// Create red pen for axis
-	CPen redPen(0, 2, RGB(172, 36, 51));
-	dc->SelectObject(&redPen);
+
+	dc->SelectObject(pen);
 
 	// Draw altitude axis
 	dc->MoveTo(area.left, area.bottom);
@@ -97,6 +96,55 @@ void CGCAScreen::DrawGlideslopeAxes(CDC* dc, const CRect area, const unsigned ma
 	dc->RestoreDC(sDC);
 }
 
+
+void CGCAScreen::DrawDeviationCross(CDC* dc, const CRect area, CPen* pen) const
+{
+	// Store current dc
+	// ReSharper disable once CppInconsistentNaming
+	const auto sDC = dc->SaveDC();
+	dc->SelectObject(pen);
+	const auto crossMiddle = area.CenterPoint();
+	dc->MoveTo(area.left, crossMiddle.y);
+	dc->LineTo(area.right, crossMiddle.y);
+	dc->MoveTo(crossMiddle.x, area.top);
+	dc->LineTo(crossMiddle.x, area.bottom);
+	// Restore previous dc
+	dc->RestoreDC(sDC);
+}
+
+
+void CGCAScreen::DrawGlideslope(CDC* dc, const CRect area, CPen* pen, const unsigned maxRange, const unsigned maxAlt) const
+{
+	// Store current dc
+	// ReSharper disable once CppInconsistentNaming
+	const auto sDC = dc->SaveDC();
+	dc->SelectObject(pen);
+	const auto slopeRadians = GlideSlope * M_PI / 180;
+	const auto slopeMaxAlt = tan(slopeRadians) * maxRange * 6076;
+	dc->MoveTo(area.left, area.bottom);
+	dc->LineTo(area.right, area.bottom - (slopeMaxAlt / maxAlt * area.Height()));
+	// Restore previous dc
+	dc->RestoreDC(sDC);
+}
+
+
+void CGCAScreen::DrawObstacleClearanceHeight(CDC* dc, const CRect area, CPen* pen, const unsigned maxRange, const unsigned maxAlt) const
+{
+	// Store current dc
+	// ReSharper disable once CppInconsistentNaming
+	const auto sDC = dc->SaveDC();
+	dc->SelectObject(pen);
+	const auto slopeRadians = GlideSlope * M_PI / 180;
+	// Show Obstacle Clearance Height
+	const auto obstacleClearanceHeightDistance = (1 / tan(slopeRadians)) * (ObstacleClearanceHeight / 6076.0);
+	const auto obstacleClearanceHeightCenterX = area.left + obstacleClearanceHeightDistance / maxRange * area.Width();
+	const auto obstacleClearanceHeightCenterY = area.bottom - static_cast<float>(ObstacleClearanceHeight) / maxAlt * area.Height();
+	dc->MoveTo(obstacleClearanceHeightCenterX - 100, obstacleClearanceHeightCenterY);
+	dc->LineTo(obstacleClearanceHeightCenterX + 100, obstacleClearanceHeightCenterY);
+	// Restore previous dc
+	dc->RestoreDC(sDC);
+}
+
 void CGCAScreen::OnAsrContentToBeSaved(void)
 {
 	CString str;
@@ -113,10 +161,11 @@ void CGCAScreen::OnAsrContentToBeSaved(void)
 	SaveDataToAsr("Slope", "Glide slope angle", str);
 }
 
-void CGCAScreen::OnRefresh(HDC hDC, int Phase)
+// ReSharper disable once CppInconsistentNaming
+void CGCAScreen::OnRefresh(const HDC hDC, const int phase)
 {
     // only in first phase
-    if (Phase != EuroScopePlugIn::REFRESH_PHASE_BEFORE_TAGS)
+    if (phase != EuroScopePlugIn::REFRESH_PHASE_BEFORE_TAGS)
         return;
 
     // I am using MFC, so load the DC in to MFC structure
@@ -143,30 +192,17 @@ void CGCAScreen::OnRefresh(HDC hDC, int Phase)
 	tkArea.DeflateRect(0, 20);
     auto xsArea = CRect(gsArea.left, gsArea.top, gsArea.left + 250, gsArea.top + 250);
 	xsArea.DeflateRect(20, 20);
-	// ### GLIDESLOPE PORTION ###
-	DrawGlideslopeAxes(&dc, gsArea, 20, 16000);
-	// Draw cross
-	dc.SelectObject(&redPen);
-    auto crossMiddle = xsArea.CenterPoint();
-	dc.MoveTo(xsArea.left, crossMiddle.y);
-	dc.LineTo(xsArea.right, crossMiddle.y);
-	dc.MoveTo(crossMiddle.x, xsArea.top);
-	dc.LineTo(crossMiddle.x, xsArea.bottom);
-	
+
+	// Set maximum values
 	const unsigned int maxRange = 20;
 	const unsigned int maxAlt = 16000;
-	// Show Glideslope
-    auto slopeRadians = GlideSlope * M_PI / 180;
-    auto slopeMaxAlt = tan(slopeRadians) * maxRange * 6076;
-	dc.SelectObject(&grePen);
-	dc.MoveTo(gsArea.left, gsArea.bottom);
-	dc.LineTo(gsArea.right, gsArea.bottom - (slopeMaxAlt/maxAlt * gsArea.Height()));
-	// Show Obstacle Clearance Height
-    auto obstacleClearanceHeightDistance = (1/tan(slopeRadians)) * (ObstacleClearanceHeight / 6076.0);
-	auto obstacleClearanceHeightCenterX = gsArea.left + obstacleClearanceHeightDistance / maxRange * gsArea.Width();
-	auto obstacleClearanceHeightCenterY = gsArea.bottom - static_cast<float>(ObstacleClearanceHeight) / maxAlt * gsArea.Height();
-	dc.MoveTo(obstacleClearanceHeightCenterX - 100, obstacleClearanceHeightCenterY);
-	dc.LineTo(obstacleClearanceHeightCenterX + 100, obstacleClearanceHeightCenterY);
+	// ### GLIDESLOPE PORTION ###
+	DrawGlideslopeAxes(&dc, gsArea, &redPen , maxRange, maxAlt);
+	// Draw cross
+	DrawDeviationCross(&dc, xsArea, &redPen);
+    // Show Glideslope
+	DrawGlideslope(&dc, gsArea, &grePen, maxRange, maxAlt);
+	DrawObstacleClearanceHeight(&dc, gsArea, &grePen, maxRange, maxAlt);
 	// Draw runway
 	dc.SelectObject(&bluPen);
 	dc.MoveTo(0, gsArea.bottom);
