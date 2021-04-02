@@ -22,6 +22,6 @@ public:
 
 	// Przesłania
 public:
-	virtual BOOL InitInstance();
+	BOOL InitInstance() override;
 	DECLARE_MESSAGE_MAP()
 };
