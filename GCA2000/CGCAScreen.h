@@ -5,22 +5,22 @@ class CGCAScreen :
 	public EuroScopePlugIn::CRadarScreen
 {
 protected:
-	CString m_Description; // Radar description
-	CString m_Lat, m_Lon; // Threshold coordinates
-	int m_Altitude; // Threshold altitude
-	int m_OCH; // Obstacle Clearance Height
-	int m_Heading; // Final Approach Heading
-	double m_Slope; // Glidepath angle
-	EuroScopePlugIn::CPosition    m_RwyPos; // Runway threshold
-	int m_maxH; // max height of slope
+	CString Description; // Radar description
+	CString Lat, Lon; // Threshold coordinates
+	int Altitude; // Threshold altitude
+	int ObstacleClearanceHeight; // Obstacle Clearance Height
+	int Heading; // Final Approach Heading
+	double GlideSlope; // Glidepath angle
+	EuroScopePlugIn::CPosition    RunwayPosition; // Runway threshold
+	int ScopeMaxHeight; // max height of slope
 public:
 	CGCAScreen(void);
 	virtual ~CGCAScreen(void);
-	virtual void OnAsrContentLoaded(bool Loaded);
-	virtual void OnAsrContentToBeSaved(void);
-	virtual void OnRefresh(HDC hDC, int Phase);
+	void OnAsrContentLoaded(bool loaded) override;
+	void OnAsrContentToBeSaved(void) override;
+	void OnRefresh(HDC hDC, int Phase) override;
 	//virtual bool OnCompileCommand(const char* sCommandLine);
-	inline virtual void OnAsrContentToBeClosed(void)
+	inline void OnAsrContentToBeClosed(void) override
 	{
 		delete this;
 	};

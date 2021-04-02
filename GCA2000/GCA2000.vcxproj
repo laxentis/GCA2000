@@ -189,6 +189,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CGCALabel.cpp" />
     <ClCompile Include="CGCAPlugin.cpp" />
     <ClCompile Include="CGCAScreen.cpp" />
     <ClCompile Include="GCA2000.cpp" />
@@ -205,6 +206,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\Euroscope\PlugInEnvironment\EuroScopePlugIn.h" />
+    <ClInclude Include="CGCALabel.h" />
     <ClInclude Include="CGCAPlugin.h" />
     <ClInclude Include="CGCAScreen.h" />
     <ClInclude Include="framework.h" />

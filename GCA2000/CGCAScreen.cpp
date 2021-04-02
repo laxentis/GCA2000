@@ -1,63 +1,65 @@
 #include "pch.h"
 #include "CGCAScreen.h"
+// ReSharper disable once CppInconsistentNaming
 #define _USE_MATH_DEFINES
-#include <math.h>
+#include <math.h>  // NOLINT(modernize-deprecated-headers) because VS fails to include MATH DEFINES from cmath
 #include <string>
 
 CGCAScreen::CGCAScreen(void)
 {
-	m_Description = "EPKS PAR 29";
-	m_Lat = "N052.19.36.15";
-	m_Lon = "E016.58.57.79";
-	m_Altitude = 274;
-	m_OCH = 280;
-	m_Heading = 294;
-	m_Slope = 3.0;
+	Description = "EPKS PAR 29";
+	Lat = "N052.19.36.15";
+	Lon = "E016.58.57.79";
+	Altitude = 274;
+	ObstacleClearanceHeight = 280;
+	Heading = 294;
+	GlideSlope = 3.0;
+	ScopeMaxHeight = 3000;
 }
 
 CGCAScreen::~CGCAScreen(void)
 {
 }
 
-void CGCAScreen::OnAsrContentLoaded(bool Loaded)
+void CGCAScreen::OnAsrContentLoaded(bool loaded)
 {
 	const char* p_value;
-	if ((p_value = GetDataFromAsr("Description")) != NULL)
-		m_Description = p_value;
-	if ((p_value = GetDataFromAsr("Longitude")) != NULL)
-		m_Lon = p_value;
-	if ((p_value = GetDataFromAsr("Latitude")) != NULL)
-		m_Lat = p_value;
-	if ((p_value = GetDataFromAsr("Altitude")) != NULL)
-		m_Altitude = atoi(p_value);
-	if ((p_value = GetDataFromAsr("Heading")) != NULL)
-		m_Heading = atoi(p_value);
-	if ((p_value = GetDataFromAsr("Slope")) != NULL)
-		m_Slope = atof(p_value);
-	if (m_Slope > 8.0)
-		m_Slope = 8.0;
-	if (m_Slope <= 0.0)
-		m_Slope = 1.0;
-	if ((p_value = GetDataFromAsr("OCH")) != NULL)
-		m_OCH = atoi(p_value);
+	if ((p_value = GetDataFromAsr("Description")) != nullptr)
+		Description = p_value;
+	if ((p_value = GetDataFromAsr("Longitude")) != nullptr)
+		Lon = p_value;
+	if ((p_value = GetDataFromAsr("Latitude")) != nullptr)
+		Lat = p_value;
+	if ((p_value = GetDataFromAsr("Altitude")) != nullptr)
+		Altitude = atoi(p_value);
+	if ((p_value = GetDataFromAsr("Heading")) != nullptr)
+		Heading = atoi(p_value);
+	if ((p_value = GetDataFromAsr("Slope")) != nullptr)
+		GlideSlope = atof(p_value);
+	if (GlideSlope > 8.0)
+		GlideSlope = 8.0;
+	if (GlideSlope <= 0.0)
+		GlideSlope = 1.0;
+	if ((p_value = GetDataFromAsr("OCH")) != nullptr)
+		ObstacleClearanceHeight = atoi(p_value);
 
-	m_RwyPos.LoadFromStrings(m_Lon, m_Lat);
-	m_maxH = m_Altitude + (int)(20.0 * 6076.0 * sin(m_Slope / 180.0 * M_PI));
+	RunwayPosition.LoadFromStrings(Lon, Lat);
+	ScopeMaxHeight = Altitude + static_cast<int>(20.0 * 6076.0 * sin(GlideSlope / 180.0 * M_PI));
 }
 
 void CGCAScreen::OnAsrContentToBeSaved(void)
 {
 	CString str;
-	SaveDataToAsr("Description", "PAR description", m_Description);
-	SaveDataToAsr("Longitude", "RWY treshold longitude", m_Lon);
-	SaveDataToAsr("Latitude", "RWY treshold latitude", m_Lat);
-	str.Format("%d", m_Altitude);
-	SaveDataToAsr("Altitude", "RWY treshold altitude", str);
-	str.Format("%d", m_OCH);
+	SaveDataToAsr("Description", "PAR description", Description);
+	SaveDataToAsr("Longitude", "RWY threshold longitude", Lon);
+	SaveDataToAsr("Latitude", "RWY threshold latitude", Lat);
+	str.Format("%d", Altitude);
+	SaveDataToAsr("Altitude", "RWY threshold altitude", str);
+	str.Format("%d", ObstacleClearanceHeight);
 	SaveDataToAsr("OCH", "Obstacle Clearance Height", str);
-	str.Format("%d", m_Heading);
+	str.Format("%d", Heading);
 	SaveDataToAsr("Heading", "RWY heading", str);
-	str.Format("%.1f", m_Slope);
+	str.Format("%.1f", GlideSlope);
 	SaveDataToAsr("Slope", "Glide slope angle", str);
 }
 
@@ -83,18 +85,18 @@ void CGCAScreen::OnRefresh(HDC hDC, int Phase)
 	radarArea.bottom = chatArea.top;
 	// Add margins
 	radarArea.DeflateRect(50, 50);
-	CPoint midPoint = radarArea.CenterPoint();
+    auto midPoint = radarArea.CenterPoint();
 	// Get Glideslope, track and cross areas
-	CRect gsArea = CRect(radarArea.left, radarArea.top, radarArea.right, midPoint.y);
-	CRect tkArea = CRect(radarArea.left, midPoint.y, radarArea.right, radarArea.bottom);
+    auto gsArea = CRect(radarArea.left, radarArea.top, radarArea.right, midPoint.y);
+    auto tkArea = CRect(radarArea.left, midPoint.y, radarArea.right, radarArea.bottom);
 	gsArea.DeflateRect(0, 20);
 	tkArea.DeflateRect(0, 20);
-	CRect xsArea = CRect(gsArea.left, gsArea.top, gsArea.left + 250, gsArea.top + 250);
+    auto xsArea = CRect(gsArea.left, gsArea.top, gsArea.left + 250, gsArea.top + 250);
 	xsArea.DeflateRect(20, 20);
 	// ### GLIDESLOPE PORTION ###
 	// Draw cross
 	dc.SelectObject(&redPen);
-	CPoint crossMiddle = xsArea.CenterPoint();
+    auto crossMiddle = xsArea.CenterPoint();
 	dc.MoveTo(xsArea.left, crossMiddle.y);
 	dc.LineTo(xsArea.right, crossMiddle.y);
 	dc.MoveTo(crossMiddle.x, xsArea.top);
@@ -103,26 +105,26 @@ void CGCAScreen::OnRefresh(HDC hDC, int Phase)
 	dc.MoveTo(gsArea.left, gsArea.bottom);
 	dc.LineTo(gsArea.left, gsArea.top);
 	const unsigned int maxAlt = 16000;
-	int numVTicks = int(maxAlt / 4000);
-	int altTick = gsArea.Height() / numVTicks;
+    auto numVTicks = static_cast<int>(maxAlt / 4000);
+    auto altTick = gsArea.Height() / numVTicks;
 	dc.SetTextColor(RGB(172, 36, 51));
 	dc.SetTextAlign(TA_RIGHT);
-	for (int i = 0; i <= numVTicks; i++)
+	for (auto i = 0; i <= numVTicks; i++)
 	{
 		dc.MoveTo(gsArea.left - 10, gsArea.bottom - i * altTick);
 		dc.LineTo(gsArea.left + 10, gsArea.bottom - i * altTick);
 		if (i == 0)
 			continue;
-		std::string label = std::to_string(i * 4000);
+		auto label = std::to_string(i * 4000);
 		dc.TextOutA(gsArea.left - 15, gsArea.bottom - i * altTick, label.c_str());
 	}
 	// Draw track distance axis
 	dc.MoveTo(gsArea.left, gsArea.bottom);
 	dc.LineTo(gsArea.right, gsArea.bottom);
 	const unsigned int maxRange = 20;
-	int numTicks = int(maxRange / 2.5);
-	int rangeTick = gsArea.Width() / numTicks;
-	for (int i = 0; i <= numTicks; i++)
+    auto numTicks = static_cast<int>(maxRange / 2.5);
+    auto rangeTick = gsArea.Width() / numTicks;
+	for (auto i = 0; i <= numTicks; i++)
 	{
 		dc.MoveTo(gsArea.left + i * rangeTick, gsArea.bottom - 10);
 		dc.LineTo(gsArea.left + i * rangeTick, gsArea.bottom + 10);
@@ -130,22 +132,22 @@ void CGCAScreen::OnRefresh(HDC hDC, int Phase)
 			continue;
 		if (i % 2 != 0)
 			continue;
-		std::string label = std::to_string(int(i * 2.5));
+		auto label = std::to_string(int(i * 2.5));
 		dc.SetTextAlign(TA_TOP);
 		dc.TextOutA(gsArea.left + i * rangeTick, gsArea.bottom + 15, label.c_str());
 	}
 	// Show Glideslope
-	double slope_radians = m_Slope * M_PI / 180;
-	double slopeMaxAlt = tan(slope_radians) * maxRange * 6076;
+    auto slopeRadians = GlideSlope * M_PI / 180;
+    auto slopeMaxAlt = tan(slopeRadians) * maxRange * 6076;
 	dc.SelectObject(&grePen);
 	dc.MoveTo(gsArea.left, gsArea.bottom);
 	dc.LineTo(gsArea.right, gsArea.bottom - (slopeMaxAlt/maxAlt * gsArea.Height()));
-	// Show OCH
-	double OCH_distance = (1/tan(slope_radians)) * (m_OCH / 6076.0);
-	int OCH_centerX = gsArea.left + OCH_distance / maxRange * gsArea.Width();
-	int OCH_centerY = gsArea.bottom - (float)m_OCH / maxAlt * gsArea.Height();
-	dc.MoveTo(OCH_centerX - 100, OCH_centerY);
-	dc.LineTo(OCH_centerX + 100, OCH_centerY);
+	// Show Obstacle Clearance Height
+    auto obstacleClearanceHeightDistance = (1/tan(slopeRadians)) * (ObstacleClearanceHeight / 6076.0);
+	auto obstacleClearanceHeightCenterX = gsArea.left + obstacleClearanceHeightDistance / maxRange * gsArea.Width();
+	auto obstacleClearanceHeightCenterY = gsArea.bottom - static_cast<float>(ObstacleClearanceHeight) / maxAlt * gsArea.Height();
+	dc.MoveTo(obstacleClearanceHeightCenterX - 100, obstacleClearanceHeightCenterY);
+	dc.LineTo(obstacleClearanceHeightCenterX + 100, obstacleClearanceHeightCenterY);
 	// Draw runway
 	dc.SelectObject(&bluPen);
 	dc.MoveTo(0, gsArea.bottom);
@@ -155,9 +157,9 @@ void CGCAScreen::OnRefresh(HDC hDC, int Phase)
 	dc.SetTextColor(RGB(170, 29, 93));
 	dc.SetTextAlign(TA_LEFT);
 	std::string topLabel = "  GS: ";
-	topLabel.append(std::to_string(m_Slope).substr(0,3));
+	topLabel.append(std::to_string(GlideSlope).substr(0,3));
 	topLabel.append("°        RWY: ");
-	topLabel.append(std::to_string(m_Heading));
+	topLabel.append(std::to_string(Heading));
 	std::string windDir = "270"; // TODO: Add wind from METAR
 	std::string windSpd = "15";  // TODO: Add wind from METAR
 	std::string QNH = "1013";    // TODO: Add QNH from METAR
