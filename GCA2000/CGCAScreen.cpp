@@ -5,6 +5,8 @@
 #include <math.h>  // NOLINT(modernize-deprecated-headers) because VS fails to include MATH DEFINES from cmath
 #include <string>
 
+#include "CGCAPlot.h"
+
 CGCAScreen::CGCAScreen(void)
 {
 	Description = "EPKS PAR 29";
@@ -299,7 +301,7 @@ void CGCAScreen::OnRefresh(HDC hDC, const int phase)
 	// Set maximum values
 	const unsigned maxRange = 20;
 	const unsigned maxAlt = 16000;
-	const unsigned maxTrackError = maxAlt * 2;
+	const auto maxTrackError = maxAlt * 2;
 	// ### GLIDESLOPE PORTION ###
 	DrawGlideslopeAxes(&dc, gsArea, &redPen , maxRange, maxAlt);
 	// Draw cross
@@ -315,6 +317,23 @@ void CGCAScreen::OnRefresh(HDC hDC, const int phase)
 	// ### TRACK PORTION ###
 	DrawTrackAxes(&dc, tkArea, &redPen, maxRange, maxTrackError);
 	DrawTrackRunway(&dc, tkArea, &bluPen);
+    for (auto radarTarget = GetPlugIn()->RadarTargetSelectFirst(); radarTarget.IsValid(); radarTarget = GetPlugIn()->RadarTargetSelectNext(radarTarget))
+	{
+		auto position = radarTarget.GetPosition();
+		const auto distance = position.GetPosition().DirectionTo(RunwayPosition);
+    	// Skip tracks outside of maximum range
+		if (position.GetPosition().DistanceTo(RunwayPosition) > maxRange)
+			continue;
+		// Get angle to runway
+		const auto angle = position.GetPosition().DirectionTo(RunwayPosition);
+		const auto angleDiff = angle - Heading;
+
+		// Skip tracks outside of bounds
+		if (fabs(angleDiff) > 15)
+			continue;
+
+		//CGCAPlot plot {radarTarget, RunwayPosition, Altitude, Heading, GlideSlope };
+	}
     // detach
     dc.Detach();
 }

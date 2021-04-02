@@ -5,7 +5,7 @@
 class CGCALabel
 {
 public:
-	CGCALabel(EuroScopePlugIn::CRadarTarget track, char wakeTurbulenceCategory, EuroScopePlugIn::CPosition threshold, int thresholdAltitude, int heading, double glideSlope);
+	CGCALabel(EuroScopePlugIn::CRadarTarget track, EuroScopePlugIn::CPosition threshold, int thresholdAltitude, int heading, double glideSlope);
 	double GetTrackDistance() const;
 	double GetTrackDeviation() const;
 	double GetGlidepathDeviation() const;

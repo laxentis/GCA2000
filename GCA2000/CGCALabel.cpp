@@ -5,7 +5,7 @@
 #include <functional>
 #include <math.h>  // NOLINT(modernize-deprecated-headers)
 
-CGCALabel::CGCALabel(const EuroScopePlugIn::CRadarTarget track, char wakeTurbulenceCategory, const EuroScopePlugIn::CPosition threshold, const int thresholdAltitude,
+CGCALabel::CGCALabel(const EuroScopePlugIn::CRadarTarget track, const EuroScopePlugIn::CPosition threshold, const int thresholdAltitude,
                      const int heading,
                      const double glideSlope)
 {
