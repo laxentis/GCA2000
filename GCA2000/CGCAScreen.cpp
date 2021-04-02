@@ -282,6 +282,8 @@ void CGCAScreen::OnRefresh(HDC hDC, const int phase)
 	CPen bluPen(0, 2, RGB(19, 97, 232));
 	CPen yelPen(0, 2, RGB(223, 212, 36));
 	CPen grePen(0, 2, RGB(34, 85, 48));
+	CPen whtPen(0, 2, RGB(255, 255, 255));
+	CPen orgPen(0, 2, RGB(255, 127, 80));
     CPen* p_old_pen = dc.SelectObject(&redPen);
 	// Get drawing area
 	CRect radarArea = GetRadarArea();
@@ -333,6 +335,9 @@ void CGCAScreen::OnRefresh(HDC hDC, const int phase)
 			continue;
 
 		//CGCAPlot plot {radarTarget, RunwayPosition, Altitude, Heading, GlideSlope };
+		auto *plot = new CGCAPlot(radarTarget, RunwayPosition, gsArea, tkArea, xsArea, maxRange, maxAlt, 1000, 500,
+		                         Altitude, GlideSlope, Heading);
+		plot->DrawPlot(&dc, &whtPen, &yelPen, &orgPen);
 	}
     // detach
     dc.Detach();

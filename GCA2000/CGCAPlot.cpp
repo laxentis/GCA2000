@@ -46,7 +46,10 @@ int CGCAPlot::TrackErrorToTrackY() const
 {
 	const auto trackError = this->Label->GetTrackDeviation();
 	const auto middle = this->TrackArea.CenterPoint().y;
-	const auto deflection = GetMaxTrackErrorAtDistance() / this->TrackArea.Height() * trackError;
+	auto deflection = GetMaxTrackErrorAtDistance() / this->TrackArea.Height() * trackError;
+	if (trackError > 0)
+		deflection = -deflection;
+	return middle + deflection;
 }
 
 void CGCAPlot::PlotTrack(CDC* dc, CPen* pen) const
@@ -56,5 +59,13 @@ void CGCAPlot::PlotTrack(CDC* dc, CPen* pen) const
 	const auto x = this->TrackDistanceToX();
 	const auto y = this->TrackErrorToTrackY();
 	dc->Ellipse(x - 5, y - 5, x + 5, y + 5);
+	dc->RestoreDC(sDC);
+}
+
+void CGCAPlot::DrawPlot(CDC* dc, CPen* plotPen, CPen* firstErrorPen, CPen* secondErrorPen) const
+{
+	// ReSharper disable once CppInconsistentNaming
+	auto const sDC = dc->SaveDC();
+	PlotTrack(dc, plotPen);
 	dc->RestoreDC(sDC);
 }

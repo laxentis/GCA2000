@@ -4,6 +4,12 @@
 // ReSharper disable once CppInconsistentNaming
 class CGCAPlot
 {
+public:
+	CGCAPlot(const CGCAPlot& other) = delete;
+	CGCAPlot(CGCAPlot&& other) noexcept = delete;
+	CGCAPlot& operator=(const CGCAPlot& other) = delete;
+	CGCAPlot& operator=(CGCAPlot&& other) noexcept = delete;
+	void DrawPlot(CDC* dc, CPen* plotPen, CPen* firstErrorPen, CPen* secondErrorPen) const;
 private:
 	int TrackDistanceToX() const;
 	int TrackErrorToTrackY() const;
@@ -26,9 +32,9 @@ protected:
 	unsigned MaxAlt = 16000;
 	int MaxTrackDeviation = 1000;
 	int MaxGlideslopeDeviation = 500;
-	int ThresholdAltitude = 0;
+	int ThresholdAltitude = 274;
 	double GlideSlope = 3.0;
-	int Heading = 0;
+	int Heading = 294;
 
 	CGCALabel* Label;
 };

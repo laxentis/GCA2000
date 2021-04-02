@@ -5,7 +5,6 @@
 class CGCAScreen final :
 	public EuroScopePlugIn::CRadarScreen
 {
-private:
 	void DrawGlideslopeAxes(CDC *dc, CRect area, CPen* pen, unsigned maxRange, unsigned maxAlt) const;
 	void DrawDeviationCross(CDC* dc, CRect area, CPen* pen) const;
 	void DrawGlideslope(CDC* dc, CRect area, CPen* pen, unsigned maxRange, unsigned maxAlt) const;
@@ -30,8 +29,8 @@ public:
 	void OnAsrContentToBeSaved() override;
 	// ReSharper disable once CppInconsistentNaming
 	void OnRefresh(HDC hDC, int phase) override;
-	//virtual bool OnCompileCommand(const char* sCommandLine);
-	inline void OnAsrContentToBeClosed() override
+	//bool OnCompileCommand(const char* sCommandLine) override;
+	void OnAsrContentToBeClosed() override
 	{
 		delete this;
 	}
