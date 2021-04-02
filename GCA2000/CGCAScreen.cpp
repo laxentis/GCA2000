@@ -156,6 +156,61 @@ void CGCAScreen::DrawGlideslopeRunway(CDC* dc, const CRect area, CPen* pen)
 	dc->RestoreDC(sDC);
 }
 
+
+void CGCAScreen::DrawMiddleText(CDC* dc, CRect area) const
+{
+	// ReSharper disable once CppInconsistentNaming
+	const auto sDC = dc->SaveDC();
+	const auto midPoint = area.CenterPoint();
+	dc->SetTextColor(RGB(170, 29, 93));
+	dc->SetTextAlign(TA_LEFT);
+	std::string topLabel = "  GS: ";
+	topLabel.append(std::to_string(GlideSlope).substr(0, 3));
+	topLabel.append("°        RWY: ");
+	topLabel.append(std::to_string(Heading));
+	std::string windDir = "270"; // TODO: Add wind from METAR
+	std::string windSpd = "15";  // TODO: Add wind from METAR
+	std::string QNH = "1013";    // TODO: Add QNH from METAR
+	std::string botLabel = "WIND: ";
+	botLabel.append(windDir);
+	botLabel.append("° / ");
+	botLabel.append(windSpd);
+	botLabel.append("KT ALT: ");
+	botLabel.append(QNH);
+	dc->TextOutA(area.left + 20, midPoint.y - 10, topLabel.c_str());
+	dc->TextOutA(area.left + 20, midPoint.y, botLabel.c_str());
+	dc->RestoreDC(sDC);
+}
+
+
+void CGCAScreen::DrawTrackAxes(CDC* dc, const CRect area, CPen* pen, const unsigned maxRange) const
+{
+	// ReSharper disable once CppInconsistentNaming
+	const auto sDC = dc->SaveDC();
+	dc->SelectObject(pen);
+	const auto midPoint = area.CenterPoint();
+	// Draw middle axis
+	dc->MoveTo(area.left, midPoint.y);
+	dc->LineTo(area.right, midPoint.y);
+	// Draw ticks
+	const auto numTicks = static_cast<int>(maxRange / 2.5);
+	const auto tickWidth = area.Width() / numTicks;
+	dc->SetTextColor(RGB(172, 36, 51));
+	for (auto i = 0; i <= numTicks; i++)
+	{
+		dc->MoveTo(area.left + i * tickWidth, midPoint.y - 10);
+		dc->LineTo(area.left + i * tickWidth, midPoint.y + 10);
+		if (i == 0)
+			continue;
+		if (i % 2 != 0)
+			continue;
+		auto label = std::to_string(static_cast<int>(i * 2.5));
+		dc->SetTextAlign(TA_TOP);
+		dc->TextOutA(area.left + i * tickWidth, midPoint.y + 15, label.c_str());
+	}
+	dc->RestoreDC(sDC);
+}
+
 void CGCAScreen::OnAsrContentToBeSaved(void)
 {
 	CString str;
@@ -187,15 +242,14 @@ void CGCAScreen::OnRefresh(const HDC hDC, const int phase)
 	CPen bluPen(0, 2, RGB(19, 97, 232));
 	CPen yelPen(0, 2, RGB(223, 212, 36));
 	CPen grePen(0, 2, RGB(34, 85, 48));
-	CPen* p_old_pen;
-	p_old_pen = dc.SelectObject(&redPen);
+    CPen* p_old_pen = dc.SelectObject(&redPen);
 	// Get drawing area
 	CRect radarArea = GetRadarArea();
-	CRect chatArea = GetChatArea();
+    const CRect chatArea = GetChatArea();
 	radarArea.bottom = chatArea.top;
 	// Add margins
 	radarArea.DeflateRect(50, 50);
-    auto midPoint = radarArea.CenterPoint();
+    const auto midPoint = radarArea.CenterPoint();
 	// Get Glideslope, track and cross areas
     auto gsArea = CRect(radarArea.left, radarArea.top, radarArea.right, midPoint.y);
     auto tkArea = CRect(radarArea.left, midPoint.y, radarArea.right, radarArea.bottom);
@@ -218,29 +272,9 @@ void CGCAScreen::OnRefresh(const HDC hDC, const int phase)
 	DrawGlideslopeRunway(&dc, gsArea, &bluPen);
 	// ### MIDDLE TEXT ###
 	// Draw info text in the middle
-	dc.SetTextColor(RGB(170, 29, 93));
-	dc.SetTextAlign(TA_LEFT);
-	std::string topLabel = "  GS: ";
-	topLabel.append(std::to_string(GlideSlope).substr(0,3));
-	topLabel.append("°        RWY: ");
-	topLabel.append(std::to_string(Heading));
-	std::string windDir = "270"; // TODO: Add wind from METAR
-	std::string windSpd = "15";  // TODO: Add wind from METAR
-	std::string QNH = "1013";    // TODO: Add QNH from METAR
-	std::string botLabel = "WIND: ";
-	botLabel.append(windDir);
-	botLabel.append("° / ");
-	botLabel.append(windSpd);
-	botLabel.append("KT ALT: ");
-	botLabel.append(QNH);
-	dc.TextOutA(radarArea.left + 20, midPoint.y - 10, topLabel.c_str());
-	dc.TextOutA(radarArea.left + 20, midPoint.y     , botLabel.c_str());
+	DrawMiddleText(&dc, radarArea);
 	// ### TRACK PORTION ###
-    // Show Track area
-	dc.SelectObject(&yelPen);
-	dc.MoveTo(tkArea.right, tkArea.top);
-	dc.LineTo(tkArea.left, tkArea.top);
-	dc.LineTo(tkArea.right, tkArea.bottom);
+	DrawTrackAxes(&dc, tkArea, &redPen, maxRange);
     // detach
     dc.Detach();
 }
