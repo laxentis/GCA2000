@@ -145,6 +145,17 @@ void CGCAScreen::DrawObstacleClearanceHeight(CDC* dc, const CRect area, CPen* pe
 	dc->RestoreDC(sDC);
 }
 
+
+void CGCAScreen::DrawGlideslopeRunway(CDC* dc, const CRect area, CPen* pen)
+{
+	// ReSharper disable once CppInconsistentNaming
+	const auto sDC = dc->SaveDC();
+	dc->SelectObject(pen);
+	dc->MoveTo(0, area.bottom);
+	dc->LineTo(area.left + 50, area.bottom);
+	dc->RestoreDC(sDC);
+}
+
 void CGCAScreen::OnAsrContentToBeSaved(void)
 {
 	CString str;
@@ -204,9 +215,7 @@ void CGCAScreen::OnRefresh(const HDC hDC, const int phase)
 	DrawGlideslope(&dc, gsArea, &grePen, maxRange, maxAlt);
 	DrawObstacleClearanceHeight(&dc, gsArea, &grePen, maxRange, maxAlt);
 	// Draw runway
-	dc.SelectObject(&bluPen);
-	dc.MoveTo(0, gsArea.bottom);
-	dc.LineTo(gsArea.left + 50, gsArea.bottom);
+	DrawGlideslopeRunway(&dc, gsArea, &bluPen);
 	// ### MIDDLE TEXT ###
 	// Draw info text in the middle
 	dc.SetTextColor(RGB(170, 29, 93));

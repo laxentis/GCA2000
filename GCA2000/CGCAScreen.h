@@ -10,6 +10,7 @@ private:
 	void DrawDeviationCross(CDC* dc, CRect area, CPen* pen) const;
 	void DrawGlideslope(CDC* dc, CRect area, CPen* pen, unsigned maxRange, unsigned maxAlt) const;
 	void DrawObstacleClearanceHeight(CDC* dc, CRect area, CPen* pen, unsigned maxRange, unsigned maxAlt) const;
+	static void DrawGlideslopeRunway(CDC* dc, CRect area, CPen* pen);
 protected:
 	CString Description; // Radar description
 	CString Lat, Lon; // Threshold coordinates
@@ -20,14 +21,14 @@ protected:
 	EuroScopePlugIn::CPosition    RunwayPosition; // Runway threshold
 	int ScopeMaxHeight; // max height of slope
 public:
-	CGCAScreen(void);
-	virtual ~CGCAScreen(void);
+	CGCAScreen();
+	virtual ~CGCAScreen();
 	void OnAsrContentLoaded(bool loaded) override;
-	void OnAsrContentToBeSaved(void) override;
+	void OnAsrContentToBeSaved() override;
 	// ReSharper disable once CppInconsistentNaming
 	void OnRefresh(HDC hDC, int phase) override;
 	//virtual bool OnCompileCommand(const char* sCommandLine);
-	inline void OnAsrContentToBeClosed(void) override
+	inline void OnAsrContentToBeClosed() override
 	{
 		delete this;
 	}
