@@ -5,18 +5,18 @@
 #define MY_PLUGIN_DEVELOPER "Dawid Reszel"
 #define MY_PLUGIN_COPYRIGHT "GPL v3"
 #define MY_PLUGIN_VIEW_AVISO  "GCA PAR radar display"
-class CGCAPlugin :
+class CGCAPlugin final :
 	public EuroScopePlugIn::CPlugIn
 {
 public:
-	CGCAPlugin(void);
-	virtual ~CGCAPlugin(void);
-	virtual EuroScopePlugIn::CRadarScreen* OnRadarScreenCreated(
+	CGCAPlugin();
+	~CGCAPlugin() override;
+	EuroScopePlugIn::CRadarScreen* OnRadarScreenCreated(
 		const char* sDisplayName,
 		bool needRadarContent,
 		bool geoReferenced,
 		bool canBeSaved,
-		bool canBeCreated);
+		bool canBeCreated) override;
 	void OnNewMetarReceived(const char* sStation, const char* sFullMetar) override;
 };
 

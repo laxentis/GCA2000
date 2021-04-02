@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <EuroScopePlugIn.h>
+// ReSharper disable once CppInconsistentNaming
 class CGCALabel
 {
 public:
