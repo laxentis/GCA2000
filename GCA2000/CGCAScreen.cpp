@@ -346,7 +346,7 @@ void CGCAScreen::OnRefresh(const HDC hDC, const int phase)
 		//CGCAPlot plot {radarTarget, RunwayPosition, Altitude, Heading, GlideSlope };
 		const auto *plot = new CGCAPlot(radar_target, runway_position_, gs_area, tk_area, xs_area, max_range, max_alt, 1000, 500,
 		                                altitude_, glide_slope_, heading_);
-		plot->DrawPlot(&dc, &wht_pen, &yel_pen, &org_pen);
+		plot->draw_plot(&dc, &wht_pen, &yel_pen, &org_pen);
 	}
     // detach
     dc.Detach();

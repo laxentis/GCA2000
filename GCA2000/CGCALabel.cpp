@@ -5,67 +5,67 @@
 #include <functional>
 #include <math.h>  // NOLINT(modernize-deprecated-headers)
 
-CGCALabel::CGCALabel(const EuroScopePlugIn::CRadarTarget track, const EuroScopePlugIn::CPosition threshold, const int thresholdAltitude,
+CGCALabel::CGCALabel(const EuroScopePlugIn::CRadarTarget track, const EuroScopePlugIn::CPosition threshold, const int threshold_altitude,
                      const int heading,
-                     const double glideSlope)
+                     const double glide_slope)
 {
 	this->RadarTrackPosition = track.GetPosition().GetPosition();
 	this->WakeTurbulenceCategory = track.GetCorrelatedFlightPlan().GetFlightPlanData().GetAircraftWtc();
 	this->Callsign = track.GetCallsign();
 	this->Altitude = track.GetPosition().GetPressureAltitude();
 	this->RunwayThreshold = threshold;
-	this->ThresholdAltitude = thresholdAltitude;
+	this->ThresholdAltitude = threshold_altitude;
 	this->FinalApproachHeading = heading;
-	this->GlideslopeAngle = glideSlope;
+	this->GlideslopeAngle = glide_slope;
 	this->TrackDeviation = 0;
 	this->TrackDistance = 0;
 	this->GlidepathDeviation = 0;
-	CalculateTrackDistance();
-	CalculateTrackDeviation();
-	CalculateGlidepathDeviation();
+	calculate_track_distance();
+	calculate_track_deviation();
+	calculate_glidepath_deviation();
 }
 
-void CGCALabel::CalculateTrackDistance()
+void CGCALabel::calculate_track_distance()
 {
-	auto trackAngle = this->RunwayThreshold.DirectionTo(this->RadarTrackPosition);
-	trackAngle = trackAngle * M_PI / 180;
-	const auto straightDistance = this->RunwayThreshold.DistanceTo(this->RadarTrackPosition);
-	this->TrackDistance = cos(trackAngle) * straightDistance;
+	auto track_angle = this->RunwayThreshold.DirectionTo(this->RadarTrackPosition);
+	track_angle = track_angle * M_PI / 180;
+	const auto straight_distance = this->RunwayThreshold.DistanceTo(this->RadarTrackPosition);
+	this->TrackDistance = cos(track_angle) * straight_distance;
 }
 
-void CGCALabel::CalculateTrackDeviation()
+void CGCALabel::calculate_track_deviation()
 {
-	auto trackAngle = this->RunwayThreshold.DirectionTo(this->RadarTrackPosition);
-	trackAngle = trackAngle * M_PI / 180;
-	const auto straightDistance = this->RunwayThreshold.DistanceTo(this->RadarTrackPosition);
-	this->TrackDeviation = sin(trackAngle) * straightDistance;
+	auto track_angle = this->RunwayThreshold.DirectionTo(this->RadarTrackPosition);
+	track_angle = track_angle * M_PI / 180;
+	const auto straight_distance = this->RunwayThreshold.DistanceTo(this->RadarTrackPosition);
+	this->TrackDeviation = sin(track_angle) * straight_distance;
 }
 
-double CGCALabel::GetPerfectAltitudeForPresentDistance() const
+double CGCALabel::get_perfect_altitude_for_present_distance() const
 {
 	double altitude = ThresholdAltitude;
-	const auto glideSlopeRadians = this->GlideslopeAngle * M_PI / 180;
-	altitude += tan(glideSlopeRadians) * this->TrackDistance;
+	const auto glide_slope_radians = this->GlideslopeAngle * M_PI / 180;
+	altitude += tan(glide_slope_radians) * this->TrackDistance;
 	return altitude;
 }
 
-void CGCALabel::CalculateGlidepathDeviation()
+void CGCALabel::calculate_glidepath_deviation()
 {
-	const auto perfectAltitude = GetPerfectAltitudeForPresentDistance();
-	this->GlidepathDeviation = this->Altitude - perfectAltitude;
+	const auto perfect_altitude = get_perfect_altitude_for_present_distance();
+	this->GlidepathDeviation = this->Altitude - perfect_altitude;
 }
 
-double CGCALabel::GetTrackDistance() const
+double CGCALabel::get_track_distance() const
 {
 	return this->TrackDistance;
 }
 
-double CGCALabel::GetTrackDeviation() const
+double CGCALabel::get_track_deviation() const
 {
 	return this->TrackDeviation;
 }
 
-double CGCALabel::GetGlidepathDeviation() const
+double CGCALabel::get_glidepath_deviation() const
 {
 	return this->GlidepathDeviation;
 }

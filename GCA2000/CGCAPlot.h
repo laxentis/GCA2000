@@ -9,17 +9,17 @@ public:
 	CGCAPlot(CGCAPlot&& other) noexcept = delete;
 	CGCAPlot& operator=(const CGCAPlot& other) = delete;
 	CGCAPlot& operator=(CGCAPlot&& other) noexcept = delete;
-	void DrawPlot(CDC* dc, CPen* plotPen, CPen* firstErrorPen, CPen* secondErrorPen) const;
+	void draw_plot(CDC* dc, CPen* plot_pen, CPen* first_error_pen, CPen* second_error_pen) const;
 private:
-	int TrackDistanceToX() const;
-	int TrackErrorToTrackY() const;
-	double GetMaxTrackErrorAtDistance() const;
+	int track_distance_to_x() const;
+	int track_error_to_track_y() const;
+	double get_max_track_error_at_distance() const;
 public:
 
-	CGCAPlot(const EuroScopePlugIn::CRadarTarget& target, const EuroScopePlugIn::CPosition& runwayThreshold,
-		const CRect& glideslopeArea, const CRect& trackArea, const CRect& deviationArea, unsigned maxRange,
-		unsigned maxAlt, int maxTrackDeviation, int maxGlideslopeDeviation, int thresholdAltitude, double glideslope, int heading);
-	void PlotTrack(CDC* dc, CPen* pen) const;
+	CGCAPlot(const EuroScopePlugIn::CRadarTarget& target, const EuroScopePlugIn::CPosition& runway_threshold,
+		const CRect& glideslope_area, const CRect& track_area, const CRect& deviation_area, unsigned max_range,
+		unsigned max_alt, int max_track_deviation, int max_glideslope_deviation, int threshold_altitude, double glideslope, int heading);
+	void plot_track(CDC* dc, CPen* pen) const;
 	~CGCAPlot();
 
 protected:
