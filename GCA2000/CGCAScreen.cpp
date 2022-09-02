@@ -129,6 +129,21 @@ void CGCAScreen::DrawGlideslope(CDC* dc, const CRect area, CPen* pen, const unsi
 	dc->RestoreDC(sDC);
 }
 
+void CGCAScreen::DrawRadarCursors(CDC* dc, const CRect area, CPen* pen, const unsigned maxRange, const unsigned maxAlt) const
+{
+	const auto sDC = dc->SaveDC();
+	dc->SelectObject(pen);
+	const auto upSlopeRadians = (GlideSlope + 6) * M_PI / 180;
+	const auto downSlopeRadians = (GlideSlope - 2) * M_PI / 180;
+	const auto upMaxAlt = tan(upSlopeRadians) * maxRange * 6076;
+	const auto downMaxAlt = tan(downSlopeRadians) * maxRange * 6076;
+	dc->MoveTo(area.left, area.bottom);
+	dc->LineTo(area.right, area.bottom - (upMaxAlt / maxAlt * area.Height()));
+	dc->MoveTo(area.left, area.bottom);
+	dc->LineTo(area.right, area.bottom - (downMaxAlt / maxAlt * area.Height()));
+	dc->RestoreDC(sDC);
+}
+
 
 void CGCAScreen::DrawObstacleClearanceHeight(CDC* dc, const CRect area, CPen* pen, const unsigned maxRange, const unsigned maxAlt) const
 {
@@ -282,6 +297,7 @@ void CGCAScreen::OnRefresh(HDC hDC, const int phase)
 	CPen bluPen(0, 2, RGB(19, 97, 232));
 	CPen yelPen(0, 2, RGB(223, 212, 36));
 	CPen grePen(0, 2, RGB(34, 85, 48));
+	CPen grePenDashed(PS_DASH, 1, RGB(34, 85, 48));
 	CPen whtPen(0, 2, RGB(255, 255, 255));
 	CPen orgPen(0, 2, RGB(255, 127, 80));
     CPen* p_old_pen = dc.SelectObject(&redPen);
@@ -310,6 +326,7 @@ void CGCAScreen::OnRefresh(HDC hDC, const int phase)
 	DrawDeviationCross(&dc, xsArea, &redPen);
     // Show Glideslope
 	DrawGlideslope(&dc, gsArea, &grePen, maxRange, maxAlt);
+	DrawRadarCursors(&dc, gsArea, &grePenDashed, maxRange, maxAlt);
 	DrawObstacleClearanceHeight(&dc, gsArea, &grePen, maxRange, maxAlt);
 	// Draw runway
 	DrawGlideslopeRunway(&dc, gsArea, &bluPen);

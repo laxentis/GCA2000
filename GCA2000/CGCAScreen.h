@@ -8,6 +8,7 @@ class CGCAScreen final :
 	void DrawGlideslopeAxes(CDC *dc, CRect area, CPen* pen, unsigned maxRange, unsigned maxAlt) const;
 	void DrawDeviationCross(CDC* dc, CRect area, CPen* pen) const;
 	void DrawGlideslope(CDC* dc, CRect area, CPen* pen, unsigned maxRange, unsigned maxAlt) const;
+	void DrawRadarCursors(CDC* dc, const CRect area, CPen* pen, const unsigned maxRange, const unsigned maxAlt) const;
 	void DrawObstacleClearanceHeight(CDC* dc, CRect area, CPen* pen, unsigned maxRange, unsigned maxAlt) const;
 	static void DrawGlideslopeRunway(CDC* dc, CRect area, CPen* pen);
 	void DrawMiddleText(CDC* dc, CRect area) const;
