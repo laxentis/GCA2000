@@ -23,19 +23,19 @@ public:
 	~CGCAPlot();
 
 protected:
-	EuroScopePlugIn::CRadarTarget Target;
-	EuroScopePlugIn::CPosition RunwayThreshold;
-	CRect GlideslopeArea;
-	CRect TrackArea;
-	CRect DeviationArea;
-	unsigned MaxRange = 20;
-	unsigned MaxAlt = 16000;
-	int MaxTrackDeviation = 1000;
-	int MaxGlideslopeDeviation = 500;
-	int ThresholdAltitude = 274;
-	double GlideSlope = 3.0;
-	int Heading = 294;
+	EuroScopePlugIn::CRadarTarget target_;
+	EuroScopePlugIn::CPosition runway_threshold_;
+	CRect glideslope_area_;
+	CRect track_area_;
+	CRect deviation_area_;
+	unsigned max_range_ = 20;
+	unsigned max_alt_ = 16000;
+	int max_track_deviation_ = 1000;
+	int max_glideslope_deviation_ = 500;
+	int threshold_altitude_ = 274;
+	double glide_slope_ = 3.0;
+	int heading_ = 294;
 
-	CGCALabel* Label;
+	CGCALabel* label_;
 };
 

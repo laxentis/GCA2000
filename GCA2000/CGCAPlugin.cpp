@@ -10,14 +10,14 @@ CGCAPlugin::CGCAPlugin(void) : CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, MY_P
 CGCAPlugin::~CGCAPlugin(void)
 = default;
 
-EuroScopePlugIn::CRadarScreen* CGCAPlugin::OnRadarScreenCreated(const char* sDisplayName, bool needRadarContent, bool geoReferenced, bool canBeSaved, bool canBeCreated)
+EuroScopePlugIn::CRadarScreen* CGCAPlugin::OnRadarScreenCreated(const char* s_display_name, bool need_radar_content, bool geo_referenced, bool can_be_saved, bool can_be_created)
 {
-	if (strcmp(sDisplayName, MY_PLUGIN_VIEW_AVISO) != 0)
+	if (strcmp(s_display_name, MY_PLUGIN_VIEW_AVISO) != 0)
 		return nullptr;
 	else
 		return new CGCAScreen;
 }
 
-void CGCAPlugin::OnNewMetarReceived(const char* sStation, const char* sFullMetar)
+void CGCAPlugin::OnNewMetarReceived(const char* s_station, const char* s_full_metar)
 {
 }
