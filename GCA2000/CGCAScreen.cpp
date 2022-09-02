@@ -337,10 +337,10 @@ void CGCAScreen::OnRefresh(const HDC hDC, const int phase)
 			continue;
 		// Get angle to runway
 		const auto angle = position.GetPosition().DirectionTo(runway_position_);
-		const auto angleDiff = angle - heading_;
+		const auto angle_diff = angle - heading_;
 
 		// Skip tracks outside of bounds
-		if (fabs(angleDiff) > 15)
+		if (fabs(angle_diff) > 15)
 			continue;
 
 		//CGCAPlot plot {radarTarget, RunwayPosition, Altitude, Heading, GlideSlope };
