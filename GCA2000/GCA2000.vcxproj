@@ -206,7 +206,7 @@
     <None Include="res\GCA2000.rc2" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\..\Euroscope\PlugInEnvironment\EuroScopePlugIn.h" />
+    <ClInclude Include="..\PlugInEnvironment\EuroScopePlugIn.h" />
     <ClInclude Include="CGCALabel.h" />
     <ClInclude Include="CGCAPlot.h" />
     <ClInclude Include="CGCAPlugin.h" />
