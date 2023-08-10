@@ -58,7 +58,7 @@
     <ClInclude Include="pch.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\..\Euroscope\PlugInEnvironment\EuroScopePlugIn.h">
+    <ClInclude Include="..\PlugInEnvironment\EuroScopePlugIn.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
     <ClInclude Include="CGCAPlugin.h">
