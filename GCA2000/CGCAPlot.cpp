@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "CGCAPlot.h"
+#include "CGCAScreen.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <map>
@@ -59,10 +60,10 @@ double CGCAPlot::gs_error_to_gs_y() const
 	return this->glideslope_area_.bottom - (this->label_->get_altitude() - this->threshold_altitude_) * glideslope_area_.Height() / this->max_alt_;
 }
 
-void CGCAPlot::draw_plot(CDC* dc, CPen* plot_pen, CPen* first_error_pen, CPen* second_error_pen) const
+void CGCAPlot::draw_plot(CDC* dc, CPen* plot_pen, CPen* first_error_pen, CPen* second_error_pen, CGCAScreen* screen) const
 {
 
-    	auto const s_dc = dc->SaveDC();
+    auto const s_dc = dc->SaveDC();
 	dc->SelectObject(plot_pen);
 	const double x = this->track_distance_to_x();//track_area_.CenterPoint().x; //this->track_distance_to_x();
 	const double y_track = this->track_error_to_track_y();///track_area_.CenterPoint().y;//this->track_error_to_track_y()
@@ -77,6 +78,9 @@ void CGCAPlot::draw_plot(CDC* dc, CPen* plot_pen, CPen* first_error_pen, CPen* s
 	//Check if inside correct area before drawing
 	if (this->track_area_.PtInRect(CPoint(x, y_track)) && this->glideslope_area_.PtInRect(CPoint(x, y_gs)))
 	{
+		//Store coordinates in map for history trails
+		screen->plot_map_[std::make_tuple(x, y_track, y_gs)] = 1;
+
 		
 		//Draw on track display ----------------------
 		// Draw a circle
@@ -106,8 +110,8 @@ void CGCAPlot::draw_plot(CDC* dc, CPen* plot_pen, CPen* first_error_pen, CPen* s
 		// Draw tag
 		dc->SetTextAlign(TA_LEFT);
 		dc->TextOutA(x, y_gs + 15, callsign.c_str());
-		dc->TextOutA(x, y_gs + 30, height_str.c_str()); //show height above threshold
-		dc->TextOutA(x, y_gs + 45, altitude_str.c_str()); //show altitude
+		//dc->TextOutA(x, y_gs + 30, height_str.c_str()); //show height above threshold
+		//dc->TextOutA(x, y_gs + 45, altitude_str.c_str()); //show altitude
 
 
 		std::string distance_str = std::to_string(static_cast<double>(this->label_->get_track_distance()));

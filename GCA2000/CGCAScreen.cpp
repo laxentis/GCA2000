@@ -4,12 +4,16 @@
 #define _USE_MATH_DEFINES  // NOLINT(clang-diagnostic-reserved-id-macro)
 #include <math.h>  // NOLINT(modernize-deprecated-headers) because VS fails to include MATH DEFINES from cmath
 #include <string>
+#include <iostream>
+#include <map>
+#include <tuple>
+#include <vector>
 
 #include "CGCAPlot.h"
 
 CGCAScreen::CGCAScreen(void)
 {
-	description_ = "ICAO PAR 00"; // TO FIX: VALUES ARE NEVER OVERRIDEN BY ASR CONTENT
+	description_ = "ICAO PAR 00";
 	lat_ = "N000.00.00.00";
 	lon_ = "E000.00.00.00";
 	altitude_ = 0;
@@ -19,6 +23,7 @@ CGCAScreen::CGCAScreen(void)
 	scope_max_height_ = 6000;
 	max_range_ = 20;
 	max_track_error_ = 3;
+	plot_map_ = {};
 }
 
 CGCAScreen::~CGCAScreen(void)
@@ -45,8 +50,12 @@ void CGCAScreen::OnAsrContentLoaded(bool loaded)
 		this->glide_slope_ = 1.0;
 	if ((p_value = GetDataFromAsr("OCH")) != nullptr)
 		this->obstacle_clearance_height_ = atof(p_value);
-	if ((p_value = GetDataFromAsr("Maximum Range")) != nullptr)
+	if ((p_value = GetDataFromAsr("Maximum range")) != nullptr)
 		this->max_range_ = atof(p_value);
+	if ((p_value = GetDataFromAsr("Maximum height")) != nullptr)
+		this->scope_max_height_ = atof(p_value);
+	if ((p_value = GetDataFromAsr("Maximum track deviation")) != nullptr)
+		this->max_track_error_ = atof(p_value);
 
 	runway_position_.LoadFromStrings(lon_, lat_);
 }
@@ -214,7 +223,7 @@ void CGCAScreen::draw_middle_text(CDC* dc, const CRect area) const
 	bot_label.append(wind_spd);
 	bot_label.append("KT ALT: ");
 	bot_label.append(qnh);*/
-	dc->TextOutA(area.left + 20, mid_point.y - 15, top_label.c_str());
+	dc->TextOutA(area.left + 10, mid_point.y - 15, top_label.c_str());
 	//dc->TextOutA(area.left + 20, mid_point.y, bot_label.c_str());
 	dc->SelectObject(def_font);
 	arial.DeleteObject();
@@ -232,8 +241,8 @@ void CGCAScreen::draw_track_axes(CDC* dc, const CRect area, CPen* pen, const dou
 	dc->MoveTo(area.left, area.bottom);
 	dc->LineTo(area.left, area.top);
 	// Draw ticks
-	const auto numVTicks = 4; // EDIT FROM: static_cast<int>(max_track_error / 8000);
-	const auto tickHeight = area.Height() / (2*numVTicks);
+	const double numVTicks = static_cast<double>(max_track_error); // max_track_error * 2: to include half-ticks every 0.5nm
+	const double tickHeight = area.Height() / (2*numVTicks);
 	for (auto i = 0; i <= numVTicks; i++)
 	{
 		dc->MoveTo(area.left - 10, area.top + i * tickHeight);
@@ -242,12 +251,23 @@ void CGCAScreen::draw_track_axes(CDC* dc, const CRect area, CPen* pen, const dou
 		dc->LineTo(area.left + 10, area.bottom - i * tickHeight);
 		if(i==0)
 			continue;
-		const auto tick_value = i * max_track_error / numVTicks;
+		const double tick_value = i * max_track_error / numVTicks;
 		auto top_label = std::to_string(tick_value);
 		auto bottom_label = std::to_string(-tick_value);
+
+		if (tick_value == static_cast<int>(tick_value)) {
+			top_label = top_label.substr(0, top_label.find('.')); //Show as integer
+			bottom_label = bottom_label.substr(0, bottom_label.find('.')); //Show as integer
+		}
+		else {
+			top_label = top_label.substr(0, top_label.find('.') + 2); //Limit to 1 decimal place
+			bottom_label = bottom_label.substr(0, bottom_label.find('.') + 2); // Limit to 1 decimal place
+		}
+		
+		dc->SetTextAlign(TA_TOP);
 		dc->SetTextAlign(TA_RIGHT);
-		dc->TextOutA(area.left - 15, mid_point.y - i * tickHeight, top_label.c_str());
-		dc->TextOutA(area.left - 15, mid_point.y + i * tickHeight, bottom_label.c_str());
+		dc->TextOutA(area.left - 15, mid_point.y - i * tickHeight - 6, top_label.c_str()); // -6 to be vertically centered
+		dc->TextOutA(area.left - 15, mid_point.y + i * tickHeight - 6, bottom_label.c_str());
 	}
 	// Draw middle horizontal axis
 	dc->MoveTo(area.left, mid_point.y);
@@ -289,20 +309,72 @@ void CGCAScreen::draw_track_runway(CDC* dc, const CRect area, CPen* pen)
 	dc->RestoreDC(s_dc);
 }
 
+void CGCAScreen::draw_history_trails(CDC* dc, CPen* plot_pen, CPen* first_error_pen, CPen* second_error_pen) {
+
+	
+	for (auto it = plot_map_.begin(); it != plot_map_.end(); /* no increment here */) {
+
+		const auto& coords = it->first;
+		int val = it->second;
+
+		if (val/5 <= 4) { //5s position update delay | 4 trails
+			
+			
+			double x = std::get<0>(coords);
+			double y_track = std::get<1>(coords);
+			double y_gs = std::get<2>(coords);
+
+			auto const s_dc = dc->SaveDC();
+			dc->SelectObject(plot_pen);
+
+			// Draw on track display ----------------------
+			//dc->Arc(x - 10.0, y_track - 10.0, x + 10.0, y_track + 10.0, x, y_track, x, y_track);
+			//dc->MoveTo(x - 11.0, y_track);
+			//dc->LineTo(x + 10.0, y_track);
+			dc->MoveTo(x, y_track - 8.0 + val/5); //size of trail reduction with val
+			dc->LineTo(x, y_track + 8.0 - val/5);
+
+			// Draw on glideslope display ---------------
+			//dc->Arc(x - 10.0, y_gs - 10.0, x + 10.0, y_gs + 10.0, x, y_gs, x, y_gs);
+			//dc->MoveTo(x - 11.0, y_gs);
+			//dc->LineTo(x + 10.0, y_gs);
+			dc->MoveTo(x, y_gs - 8.0 + val/5);
+			dc->LineTo(x, y_gs + 8.0 - val/5);
+
+			dc->RestoreDC(s_dc);
+
+			//Increment the value for next time
+			it->second = val + 1;
+			// Move to the next element
+			++it;
+		}
+		else {
+			// Safe Erase: erase() returns the iterator to the NEXT valid element
+			it = plot_map_.erase(it);
+		}
+	}
+}
+
 void CGCAScreen::OnAsrContentToBeSaved(void)
 {
 	CString str;
 	SaveDataToAsr("Description", "PAR description", description_);
 	SaveDataToAsr("Longitude", "RWY threshold longitude", lon_);
 	SaveDataToAsr("Latitude", "RWY threshold latitude", lat_);
-	str.Format("%f", altitude_);
+	str.Format("%.0f", altitude_);
 	SaveDataToAsr("Altitude", "RWY threshold altitude", str);
-	str.Format("%f", obstacle_clearance_height_);
+	str.Format("%.0f", obstacle_clearance_height_);
 	SaveDataToAsr("OCH", "Obstacle Clearance Height", str);
-	str.Format("%f", heading_);
+	str.Format("%.1f", heading_);
 	SaveDataToAsr("Heading", "RWY heading", str);
 	str.Format("%.1f", glide_slope_);
 	SaveDataToAsr("Slope", "Glide slope angle", str);
+	str.Format("%.1f", max_range_);
+	SaveDataToAsr("Maximum range", "Maximum range", str);
+	str.Format("%.0f", scope_max_height_);
+	SaveDataToAsr("Maximum height", "Maximum height", str);
+	str.Format("%.1f", max_track_error_);
+	SaveDataToAsr("Maximum track deviation", "Maximum track deviation", str);
 }
 
 // ReSharper disable once CppInconsistentNaming
@@ -388,8 +460,10 @@ void CGCAScreen::OnRefresh(const HDC hDC, const int phase)
 		//CGCAPlot plot {radarTarget, RunwayPosition, Altitude, Heading, GlideSlope };
 		const auto *plot = new CGCAPlot(radar_target, runway_position_, gs_area, tk_area, xs_area, max_range, max_alt, max_track_error, 500, //500ft of max dev for X deviation display
 		                                altitude_, glide_slope_, heading_);
-		plot->draw_plot(&dc, &wht_pen, &yel_pen, &org_pen);
+		plot->draw_plot(&dc, &wht_pen, &yel_pen, &org_pen, this);
+		
 	}
+	draw_history_trails(&dc, &wht_pen, &yel_pen, &org_pen);
     // detach
     dc.Detach();
 }

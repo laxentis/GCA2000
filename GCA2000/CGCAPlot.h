@@ -1,6 +1,7 @@
 #pragma once
 #include <EuroScopePlugIn.h>
 #include "CGCALabel.h"
+#include "CGCAScreen.h"
 #include <map>
 
 // ReSharper disable once CppInconsistentNaming
@@ -11,7 +12,7 @@ public:
 	CGCAPlot(CGCAPlot&& other) noexcept = delete;
 	CGCAPlot& operator=(const CGCAPlot& other) = delete;
 	CGCAPlot& operator=(CGCAPlot&& other) noexcept = delete;
-	void draw_plot(CDC* dc, CPen* plot_pen, CPen* first_error_pen, CPen* second_error_pen) const;
+	void draw_plot(CDC* dc, CPen* plot_pen, CPen* first_error_pen, CPen* second_error_pen, CGCAScreen* screen) const;
 private:
 	double track_distance_to_x() const;
 	double track_error_to_track_y() const;

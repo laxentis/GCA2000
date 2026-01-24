@@ -1,5 +1,9 @@
 #pragma once
 #include "EuroScopePlugIn.h"
+#include <iostream>
+#include <map>
+#include <tuple>
+#include <vector>
 
 // ReSharper disable once CppInconsistentNaming
 class CGCAScreen final :
@@ -20,15 +24,17 @@ public:
 	double altitude_; // Threshold altitude
 	double obstacle_clearance_height_; // Obstacle Clearance Height
 	double heading_; // Final Approach Heading
-	double glide_slope_; // Glidepath angle
+	double glide_slope_; // Glidepath angle (degrees)
 	EuroScopePlugIn::CPosition    runway_position_; // Runway threshold
-	double scope_max_height_; // max height of slope
-	double max_range_; //max range of radar screen
-	double max_track_error_; //max lateral dev from track
+	double scope_max_height_; // max height of slope (ft)
+	double max_range_; //max range of radar screen (NM)
+	double max_track_error_; //max lateral dev from track (NM)
+	std::map<std::tuple<double, double, double>, int> plot_map_; //map of plotted targets to store for history trails
 public:
 	CGCAScreen();
 	virtual ~CGCAScreen();
 	void OnAsrContentLoaded(bool loaded) override;
+	void draw_history_trails(CDC* dc, CPen* plot_pen, CPen* first_error_pen, CPen* second_error_pen);
 	void OnAsrContentToBeSaved() override;
 	// ReSharper disable once CppInconsistentNaming
 	void OnRefresh(const HDC hDC, int phase) override;
