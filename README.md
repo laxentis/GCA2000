@@ -5,7 +5,7 @@ GCA-2000 is a plugin for Euroscope that simulates the PAR display of a GCA-2000 
 * Track view ✔
 * Glidepath view ✔
 * Custom radar blips ✔
-* Radar trails
+* Radar trails ✔
 * Track and vertical error calculation ✔
 * "Cross" view of aircraft deviation
 * Approach parameters display ✔
