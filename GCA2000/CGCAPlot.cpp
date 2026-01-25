@@ -124,17 +124,20 @@ void CGCAPlot::draw_plot(CDC* dc, CPen* plot_pen, CPen* first_error_pen, CPen* s
 		//dc->TextOutA(x, y_gs + 60, distance_str.c_str()); //show track miles to THR
 
 		// Draw on Xs display ----------------------
-		const double x_dev = this->deviation_area_.CenterPoint().x - this->label_->get_track_deviation() / this->get_max_track_error_at_distance() * this->deviation_area_.Width();
+		const double x_dev = this->deviation_area_.CenterPoint().x - this->label_->get_track_deviation() / this->get_max_track_error_at_distance() * this->deviation_area_.Width() / 2;
 		const double y_dev = this->deviation_area_.CenterPoint().y - this->deviation_area_.Height() * this->get_vertical_dev_angle() / (2.0 * 2.0 * M_PI / 180.0); // 2.0: max 2° vertical dev
-		// Draw a circle
-		dc->Arc(x_dev - 10.0, y_dev - 10.0, x_dev + 10.0, y_dev + 10.0, x_dev, y_dev, x_dev, y_dev);
 
-		// Draw a '+' cross:
-		dc->MoveTo(x_dev - 11.0, y_dev);
-		dc->LineTo(x_dev + 10.0, y_dev);
-		dc->MoveTo(x_dev, y_dev - 10.0);
-		dc->LineTo(x_dev, y_dev + 10.0);
-		
+		if (this->deviation_area_.PtInRect(CPoint(x_dev, y_dev)))
+		{
+			// Draw a circle
+			dc->Arc(x_dev - 10.0, y_dev - 10.0, x_dev + 10.0, y_dev + 10.0, x_dev, y_dev, x_dev, y_dev);
+
+			// Draw a '+' cross:
+			dc->MoveTo(x_dev - 11.0, y_dev);
+			dc->LineTo(x_dev + 10.0, y_dev);
+			dc->MoveTo(x_dev, y_dev - 10.0);
+			dc->LineTo(x_dev, y_dev + 10.0);
+		}
 
 
 		
