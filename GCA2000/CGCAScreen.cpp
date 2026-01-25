@@ -141,7 +141,6 @@ void CGCAScreen::draw_glideslope(CDC* dc, const CRect area, CPen* pen, const dou
 	const auto s_dc = dc->SaveDC();
 	dc->SelectObject(pen);
 	const double slope_radians = glide_slope_ * M_PI / 180.0;
-	//const auto slope_max_alt = tan(slope_radians) * max_range * 6076; //6076: NM => ft
 	const double x_end_gs_nm = (max_alt - 50) / 6076.11 / tan(slope_radians); //6076.11: ft => NM and 50ft above threshold
 	const double x_end_gs = area.left + x_end_gs_nm / max_range * area.Width();
 	dc->MoveTo(area.left, area.bottom - 50/max_alt * area.Height()); //50ft above threshold on usual approach
@@ -158,18 +157,31 @@ void CGCAScreen::draw_glideslope(CDC* dc, const CRect area, CPen* pen, const dou
 	dc->RestoreDC(s_dc);
 }
 
-void CGCAScreen::draw_radar_cursors(CDC* dc, const CRect area, CPen* pen, const double max_range, const double max_alt) const
+void CGCAScreen::draw_gs_radar_cursors(CDC* dc, const CRect area, CPen* pen, const double max_range, const double max_alt) const
 {
 	const auto s_dc = dc->SaveDC();
 	dc->SelectObject(pen);
-	const auto up_slope_radians = (glide_slope_ + 6) * M_PI / 180.0;
+	const auto up_slope_radians = (glide_slope_ + 2) * M_PI / 180.0;
 	const auto down_slope_radians = (glide_slope_ - 2) * M_PI / 180.0;
-	const auto up_max_alt = tan(up_slope_radians) * max_range * 6076;
-	const auto down_max_alt = tan(down_slope_radians) * max_range * 6076;
-	dc->MoveTo(area.left, area.bottom - 50 / 6000.0 * area.Height());  //50ft above threshold on usual approach | 10 is arbitrary value
-	dc->LineTo(area.right, area.bottom - (up_max_alt / max_alt * area.Height())); //10 is arbitrary value
-	dc->MoveTo(area.left, area.bottom - 50 / 6000.0 * area.Height());  //50ft above threshold on usual approach | 10 is arbitrary value
-	dc->LineTo(area.right, area.bottom - (down_max_alt / max_alt * area.Height())); //10 is arbitrary value
+	const auto up_max_alt = tan(up_slope_radians) * max_range * 6076.11;
+	const auto down_max_alt = tan(down_slope_radians) * max_range * 6076.11;
+	dc->MoveTo(area.left, area.bottom - 50 / this->scope_max_height_ * area.Height());  //50ft above threshold on usual approach
+	dc->LineTo(area.right, area.bottom - (up_max_alt / max_alt * area.Height()));
+	dc->MoveTo(area.left, area.bottom - 50 / this->scope_max_height_ * area.Height());  //50ft above threshold on usual approach
+	dc->LineTo(area.right, area.bottom - (down_max_alt / max_alt * area.Height()));
+	dc->RestoreDC(s_dc);
+}
+
+void CGCAScreen::draw_track_radar_cursors(CDC* dc, const CRect area, CPen* pen, const double max_range, const double max_track_error) const
+{
+	const auto s_dc = dc->SaveDC();
+	dc->SelectObject(pen);
+	const auto max_dev_radians = 15.0 * M_PI / 180.0;
+	const auto track_max_dev = max_track_error / 2 / tan(max_dev_radians);
+	dc->MoveTo(area.left, area.CenterPoint().y);
+	dc->LineTo(area.left + track_max_dev * area.Width() / max_range, area.CenterPoint().y - area.Height() / 2);
+	dc->MoveTo(area.left, area.CenterPoint().y);  //50ft above threshold on usual approach
+	dc->LineTo(area.left + track_max_dev * area.Width() / max_range, area.CenterPoint().y + area.Height() / 2);
 	dc->RestoreDC(s_dc);
 }
 
@@ -233,7 +245,7 @@ void CGCAScreen::draw_middle_text(CDC* dc, const CRect area) const
 }
 
 
-void CGCAScreen::draw_track_axes(CDC* dc, const CRect area, CPen* pen, const double max_range, const int max_track_error) const
+void CGCAScreen::draw_track_axes(CDC* dc, const CRect area, CPen* pen, const double max_range, const double max_track_error) const
 {
 	const auto s_dc = dc->SaveDC();
 	dc->SelectObject(pen);
@@ -430,7 +442,8 @@ void CGCAScreen::OnRefresh(const HDC hDC, const int phase)
 	draw_deviation_cross(&dc, xs_area, &red_pen);
     // Show Glideslope
 	draw_glideslope(&dc, gs_area, &gre_pen, max_range, max_alt);
-	draw_radar_cursors(&dc, gs_area, &gre_pen_dashed, max_range, max_alt);
+	draw_gs_radar_cursors(&dc, gs_area, &gre_pen_dashed, max_range, max_alt);
+	draw_track_radar_cursors(&dc, tk_area, &gre_pen_dashed, max_range, max_track_error);
 	draw_obstacle_clearance_height(&dc, gs_area, &gre_pen, max_range, max_alt);
 	// Draw runway
 	draw_glideslope_runway(&dc, gs_area, &blu_pen);

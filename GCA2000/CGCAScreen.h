@@ -12,11 +12,12 @@ class CGCAScreen final :
 	void draw_glideslope_axes(CDC *dc, CRect area, CPen* pen, double max_range, double max_alt) const;
 	void draw_deviation_cross(CDC* dc, CRect area, CPen* pen) const;
 	void draw_glideslope(CDC* dc, CRect area, CPen* pen, double max_range, double max_alt) const;
-	void draw_radar_cursors(CDC* dc, const CRect area, CPen* pen, const double max_range, const double max_alt) const;
+	void draw_gs_radar_cursors(CDC* dc, const CRect area, CPen* pen, const double max_range, const double max_alt) const;
+	void draw_track_radar_cursors(CDC* dc, const CRect area, CPen* pen, const double max_range, const double max_track_error) const;
 	void draw_obstacle_clearance_height(CDC* dc, CRect area, CPen* pen, double max_range, double max_alt) const;
 	static void draw_glideslope_runway(CDC* dc, CRect area, CPen* pen);
 	void draw_middle_text(CDC* dc, const CRect area) const;
-	void draw_track_axes(CDC* dc, CRect area, CPen* pen, double max_range, int max_track_error) const;
+	void draw_track_axes(CDC* dc, CRect area, CPen* pen, double max_range, double max_track_error) const;
 	static void draw_track_runway(CDC* dc, CRect area, CPen* pen);
 	
 public:

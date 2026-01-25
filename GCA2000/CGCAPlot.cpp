@@ -46,12 +46,20 @@ double CGCAPlot::get_max_track_error_at_distance() const
 	return sin(track_angle) * straight_distance;
 }
 
+double CGCAPlot::get_vertical_dev_angle() const
+{
+	constexpr auto max_gs_dev = 2.0 * M_PI / 180.0; //max 2 deg deviation
+	const auto straight_distance = this->runway_threshold_.DistanceTo(this->target_.GetPosition().GetPosition());
+	const double delta_angle = atan((this->label_->get_altitude() - this->threshold_altitude_ - 50) / straight_distance / 6076.11) - (this->glide_slope_ * M_PI / 180.0); //50 ft above THR
+	return delta_angle;
+}
+
 double CGCAPlot::track_error_to_track_y() const
 {
 	const auto track_error = this->label_->get_track_deviation();
 	const auto middle = this->track_area_.CenterPoint().y;
 
-	auto deflection = track_error * this->track_area_.Height() / 2.0 / max_track_deviation_; // TO TEST
+	auto deflection = track_error * this->track_area_.Height() / 2.0 / max_track_deviation_;
 	return middle + deflection;
 }
 
@@ -112,10 +120,20 @@ void CGCAPlot::draw_plot(CDC* dc, CPen* plot_pen, CPen* first_error_pen, CPen* s
 		dc->TextOutA(x, y_gs + 15, callsign.c_str());
 		//dc->TextOutA(x, y_gs + 30, height_str.c_str()); //show height above threshold
 		//dc->TextOutA(x, y_gs + 45, altitude_str.c_str()); //show altitude
-
-
 		std::string distance_str = std::to_string(static_cast<double>(this->label_->get_track_distance()));
 		//dc->TextOutA(x, y_gs + 60, distance_str.c_str()); //show track miles to THR
+
+		// Draw on Xs display ----------------------
+		const double x_dev = this->deviation_area_.CenterPoint().x - this->label_->get_track_deviation() / this->get_max_track_error_at_distance() * this->deviation_area_.Width();
+		const double y_dev = this->deviation_area_.CenterPoint().y - this->deviation_area_.Height() * this->get_vertical_dev_angle() / (2.0 * 2.0 * M_PI / 180.0); // 2.0: max 2° vertical dev
+		// Draw a circle
+		dc->Arc(x_dev - 10.0, y_dev - 10.0, x_dev + 10.0, y_dev + 10.0, x_dev, y_dev, x_dev, y_dev);
+
+		// Draw a '+' cross:
+		dc->MoveTo(x_dev - 11.0, y_dev);
+		dc->LineTo(x_dev + 10.0, y_dev);
+		dc->MoveTo(x_dev, y_dev - 10.0);
+		dc->LineTo(x_dev, y_dev + 10.0);
 		
 
 

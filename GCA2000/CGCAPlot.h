@@ -18,6 +18,7 @@ private:
 	double track_error_to_track_y() const;
 	double get_max_track_error_at_distance() const;
 	double gs_error_to_gs_y() const;
+	double get_vertical_dev_angle() const;
 public:
 
 	CGCAPlot(const EuroScopePlugIn::CRadarTarget& target, const EuroScopePlugIn::CPosition& runway_threshold,
