@@ -15,9 +15,10 @@ class CGCAScreen final :
 	void draw_radar_cursors(CDC* dc, const CRect area, CPen* pen, const double max_range, const double max_alt) const;
 	void draw_obstacle_clearance_height(CDC* dc, CRect area, CPen* pen, double max_range, double max_alt) const;
 	static void draw_glideslope_runway(CDC* dc, CRect area, CPen* pen);
-	void draw_middle_text(CDC* dc, CRect area) const;
+	void draw_middle_text(CDC* dc, const CRect area) const;
 	void draw_track_axes(CDC* dc, CRect area, CPen* pen, double max_range, int max_track_error) const;
 	static void draw_track_runway(CDC* dc, CRect area, CPen* pen);
+	
 public:
 	CString description_; // Radar description
 	CString lat_, lon_; // Threshold coordinates

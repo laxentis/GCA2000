@@ -2,6 +2,7 @@
 #include "CGCAPlugin.h"
 #include "CGCAScreen.h"
 
+
 CGCAPlugin::CGCAPlugin(void) : CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, MY_PLUGIN_NAME, MY_PLUGIN_VERSION, MY_PLUGIN_DEVELOPER, MY_PLUGIN_COPYRIGHT)
 {
 	RegisterDisplayType(MY_PLUGIN_VIEW_AVISO, false, false, true, true);
@@ -20,6 +21,7 @@ EuroScopePlugIn::CRadarScreen* CGCAPlugin::OnRadarScreenCreated(const char* s_di
 
 void CGCAPlugin::OnNewMetarReceived(const char* s_station, const char* s_full_metar)
 {
+	//Not implemented
 }
 
 

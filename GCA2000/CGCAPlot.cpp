@@ -51,7 +51,7 @@ double CGCAPlot::track_error_to_track_y() const
 	const auto track_error = this->label_->get_track_deviation();
 	const auto middle = this->track_area_.CenterPoint().y;
 
-	auto deflection = track_error * this->track_area_.Height() / 2.0 / 3; //EDIT FROM: get_max_track_error_at_distance() / this->track_area_.Height() * track_error;
+	auto deflection = track_error * this->track_area_.Height() / 2.0 / max_track_deviation_; // TO TEST
 	return middle + deflection;
 }
 
@@ -65,8 +65,8 @@ void CGCAPlot::draw_plot(CDC* dc, CPen* plot_pen, CPen* first_error_pen, CPen* s
 
     auto const s_dc = dc->SaveDC();
 	dc->SelectObject(plot_pen);
-	const double x = this->track_distance_to_x();//track_area_.CenterPoint().x; //this->track_distance_to_x();
-	const double y_track = this->track_error_to_track_y();///track_area_.CenterPoint().y;//this->track_error_to_track_y()
+	const double x = this->track_distance_to_x();
+	const double y_track = this->track_error_to_track_y();
 	const double y_gs = + this->gs_error_to_gs_y();
 	std::string callsign = this->label_->get_callsign();
 	double altitude = this->label_->get_altitude();

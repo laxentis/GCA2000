@@ -106,7 +106,7 @@ void CGCAScreen::draw_glideslope_axes(CDC* dc, const CRect area, CPen* pen, cons
 		}
 		dc->MoveTo(area.left + i * range_tick, area.bottom - 10);
 		dc->LineTo(area.left + i * range_tick, area.bottom + 10);
-		if (i == 0) //No label for the threshold tick
+		if (i == 0 || i == 2) //No label for the threshold tick and the 1NM tick
 			continue;
 		if (i % 2 != 0) // Label every 2 half-ticks = 1NM
 			continue;
@@ -212,19 +212,21 @@ void CGCAScreen::draw_middle_text(CDC* dc, const CRect area) const
 	auto* def_font = dc->SelectObject(&arial);
 	std::string top_label = "GS: ";
 	top_label.append(std::to_string(glide_slope_).substr(0, 3));
-	top_label.append("°        OCH: ");
-	top_label.append(std::to_string(static_cast<int>(obstacle_clearance_height_)));
-	std::string wind_dir = "270"; // TODO: Add wind from METAR
-	std::string wind_spd = "15";  // TODO: Add wind from METAR
-	std::string qnh = "1013";    // TODO: Add QNH from METAR
-	/*std::string bot_label = "WIND: ";
-	bot_label.append(wind_dir); // HIDDEN BECAUSE OF LACK OF METAR SUPPORT
+	top_label.append("°     OCH: ");
+	top_label.append(std::to_string(static_cast<int>(obstacle_clearance_height_))); // GS: 3.0°  OCH: 250
+	std::string wind_dir = "---"; // TODO: Add wind from METAR						// QNH1013   WIND: 270°/15G25KT
+	std::string wind_spd = "--";  // TODO: Add wind from METAR
+	std::string qnh = "----";    // TODO: Add QNH from METAR
+	std::string bot_label = "QNH";
+	bot_label.append(qnh); // HIDDEN BECAUSE OF LACK OF METAR SUPPORT
+	bot_label.append("      WIND: ");
+	bot_label.append(wind_dir);
 	bot_label.append("° / ");
 	bot_label.append(wind_spd);
-	bot_label.append("KT ALT: ");
-	bot_label.append(qnh);*/
-	dc->TextOutA(area.left + 10, mid_point.y - 15, top_label.c_str());
-	//dc->TextOutA(area.left + 20, mid_point.y, bot_label.c_str());
+	bot_label.append("KT");
+	
+	dc->TextOutA(area.left + 17, mid_point.y - 7, top_label.c_str());
+	//dc->TextOutA(area.left + 17, mid_point.y + 8, bot_label.c_str());
 	dc->SelectObject(def_font);
 	arial.DeleteObject();
 	dc->RestoreDC(s_dc);
@@ -329,17 +331,17 @@ void CGCAScreen::draw_history_trails(CDC* dc, CPen* plot_pen, CPen* first_error_
 
 			// Draw on track display ----------------------
 			//dc->Arc(x - 10.0, y_track - 10.0, x + 10.0, y_track + 10.0, x, y_track, x, y_track);
-			//dc->MoveTo(x - 11.0, y_track);
-			//dc->LineTo(x + 10.0, y_track);
-			dc->MoveTo(x, y_track - 8.0 + val/5); //size of trail reduction with val
-			dc->LineTo(x, y_track + 8.0 - val/5);
+			dc->MoveTo(x - 7.0, y_track);
+			dc->LineTo(x + 6.0, y_track);
+			dc->MoveTo(x, y_track - 6.0); //size of trail reduction with val
+			dc->LineTo(x, y_track + 6.0);
 
 			// Draw on glideslope display ---------------
 			//dc->Arc(x - 10.0, y_gs - 10.0, x + 10.0, y_gs + 10.0, x, y_gs, x, y_gs);
-			//dc->MoveTo(x - 11.0, y_gs);
-			//dc->LineTo(x + 10.0, y_gs);
-			dc->MoveTo(x, y_gs - 8.0 + val/5);
-			dc->LineTo(x, y_gs + 8.0 - val/5);
+			dc->MoveTo(x - 7.0, y_gs);
+			dc->LineTo(x + 6.0, y_gs);
+			dc->MoveTo(x, y_gs - 6.0);
+			dc->LineTo(x, y_gs + 6.0);
 
 			dc->RestoreDC(s_dc);
 
