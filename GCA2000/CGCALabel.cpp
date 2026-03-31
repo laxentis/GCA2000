@@ -3,7 +3,7 @@
 // ReSharper disable once CppInconsistentNaming
 #define _USE_MATH_DEFINES
 #include <functional>
-#include <math.h>  // NOL (modernize-deprecated-headers)
+#include <math.h>  // NOLINT (modernize-deprecated-headers)
 
 CGCALabel::CGCALabel(const EuroScopePlugIn::CRadarTarget track, const EuroScopePlugIn::CPosition threshold, const double  threshold_altitude,
                      const double  heading,
